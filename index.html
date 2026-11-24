@@ -1,5205 +1,2603 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR" class="dark">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <meta name="description" content="Dashboard Executivo Power BI - Galpão 07 Unidade Itu | Ocupação Física, Zoneamento e Volumetria Padrão 20kg">
-
     <title>Dashboard Executivo Power BI | Galpão 07 - Unidade Itu</title>
-
     <!-- Tailwind CSS -->
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- Chart.js -->
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
     <!-- SheetJS (Leitura e geração de planilhas Excel/CSV) -->
-
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
     <!-- Google Fonts: Inter -->
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
     
-
     <script>
-
         tailwind.config = {
-
             darkMode: 'class',
-
             theme: {
-
                 extend: {
-
                     fontFamily: {
-
                         sans: ['Inter', 'Segoe UI', 'sans-serif'],
-
                     },
-
                     colors: {
-
                         pbi: {
-
                             darkBg: '#0F172A',
-
                             darkCard: '#1E293B',
-
                             darkBorder: '#334155',
-
                             lightBg: '#F1F5F9',
-
                             lightCard: '#FFFFFF',
-
                             lightBorder: '#CBD5E1',
-
                             teal: '#00B8A9',
-
                             blue: '#0284C7',
-
                             amber: '#F59E0B',
-
                             rose: '#F43F5E',
-
                             purple: '#8B5CF6',
-
                             emerald: '#10B981'
-
                         }
-
                     }
-
                 }
-
             }
-
         }
-
     </script>
-
     <style>
-
         /* Custom Scrollbar estilo Power BI */
-
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-
         ::-webkit-scrollbar-track { background: transparent; }
-
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 9999px; }
-
         ::-webkit-scrollbar-thumb:hover { background: #64748B; }
-
         
-
         .pbi-card {
-
             transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-
         }
-
         .pbi-card:hover {
-
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
-
         }
-
         .kpi-interactive {
-
             cursor: pointer;
-
             user-select: none;
-
         }
-
         .kpi-interactive:hover {
-
             transform: translateY(-2px);
-
         }
-
         .kpi-interactive:active {
-
             transform: translateY(0);
-
         }
-
         .kpi-active {
-
             box-shadow: 0 0 0 2px #14B8A6, 0 12px 24px -6px rgba(20, 184, 166, 0.28) !important;
-
         }
-
         .heatmap-cell {
-
             transition: all 0.15s ease;
-
             cursor: pointer;
-
         }
-
         .heatmap-cell:hover {
-
             transform: scale(1.04);
-
             z-index: 10;
-
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-
         }
-
         .heatmap-selected {
-
             outline: 2.5px solid #F59E0B !important;
-
             outline-offset: -2px;
-
             transform: scale(1.05);
-
             z-index: 20;
-
         }
-
     </style>
-
 </head>
-
 <body class="bg-pbi-lightBg text-slate-800 dark:bg-pbi-darkBg dark:text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-pbi-teal selection:text-white">
 
-
-
     <!-- HEADER SUPERIOR POWER BI -->
-
     <header class="bg-white dark:bg-[#0B1120] border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-xs">
-
         <div class="max-w-[1600px] mx-auto px-4 lg:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-
             <div class="flex items-center gap-3">
-
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-sky-600 flex items-center justify-center text-white shadow-md">
-
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-
                 </div>
-
                 <div>
-
                     <div class="flex items-center gap-2">
-
                         <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">Galpão 07 — Unidade Itu</h1>
-
                         <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30">Power BI Live</span>
-
                     </div>
-
                     <p id="headerSubtitle" class="text-xs text-slate-500 dark:text-slate-400">
-
                         Base Oficial: <span id="headerFileName" class="font-medium text-slate-700 dark:text-slate-300">GAVETAS_MAP_ITU_23.11.2026.xlsx</span> • <span id="headerSummaryStats">51.760 Gavetas • IA–LD (20×29=580) & LE–LR (20×15=300)</span>
-
                     </p>
-
                 </div>
-
             </div>
-
-
 
             <!-- Controles Globais (Download Modelo, Importação, Tema, Reset) -->
-
             <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-
                 <div class="hidden xl:flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
-
                     <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
-
                     <span>Clique nos gráficos ou células para <strong>Cross-Filtering</strong></span>
-
                 </div>
-
-
 
                 <!-- Input oculto e Botões Excel -->
-
                 <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)">
-
                 <button id="btnDownloadTemplate" type="button" onclick="downloadExcelTemplate()" title="Baixar planilha modelo (.xlsx) pronta para preenchimento e atualização" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white shadow-sm transition cursor-pointer">
-
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-
                     Baixar Modelo (.xlsx)
-
                 </button>
-
                 <button id="btnImportExcel" type="button" onclick="triggerExcelUpload()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 hover:bg-teal-500 text-white shadow-sm transition cursor-pointer">
-
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-
                     Importar Planilha (.xlsx / .csv)
-
                 </button>
-
-
 
                 <button id="btnResetAll" type="button" onclick="resetFilters()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 transition cursor-pointer">
-
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-
                     Limpar Filtros
-
                 </button>
-
-
 
                 <button id="btnThemeToggle" type="button" onclick="toggleTheme()" title="Alternar Tema Escuro / Claro" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition cursor-pointer">
-
                     <svg id="iconSun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-
                     <svg id="iconMoon" class="w-4 h-4 block dark:hidden text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-
                 </button>
-
             </div>
-
         </div>
-
     </header>
 
-
-
     <!-- NOTIFICAÇÃO DE STATUS DE IMPORTAÇÃO -->
-
     <div id="importStatusBanner" class="hidden border-b px-4 lg:px-6 py-2.5 transition-all">
-
         <div class="max-w-[1600px] mx-auto flex items-center justify-between gap-3 text-xs">
-
             <div class="flex items-center gap-2">
-
                 <span id="importStatusIcon" class="font-bold"></span>
-
                 <span id="importStatusText" class="font-medium"></span>
-
             </div>
-
             <button type="button" onclick="hideImportBanner()" class="font-bold opacity-70 hover:opacity-100 cursor-pointer px-1.5">✕</button>
-
         </div>
-
     </div>
 
-
-
     <!-- NAVEGAÇÃO DE PÁGINAS ESTILO POWER BI -->
-
     <nav class="bg-white dark:bg-[#0B1120] border-b border-slate-200 dark:border-slate-800 px-4 lg:px-6">
-
         <div class="max-w-[1600px] mx-auto flex items-center justify-between gap-2 overflow-x-auto">
-
             <div class="flex items-center gap-1">
-
                 <button id="tab-page1" type="button" onclick="switchPage('page1')" class="page-tab active px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-teal-500 text-teal-600 dark:text-teal-400 flex items-center gap-2 whitespace-nowrap cursor-pointer">
-
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-
                     1. Visão Geral & Ocupação
-
                 </button>
-
                 <button id="tab-page2" type="button" onclick="switchPage('page2')" class="page-tab px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-2 whitespace-nowrap cursor-pointer">
-
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-
                     2. Volumetria & Tipologias (Padrão 20kg)
-
                 </button>
-
             </div>
-
             <div id="activeFilterChips" class="hidden md:flex items-center gap-1.5 py-1.5"></div>
-
         </div>
-
     </nav>
 
-
-
     <!-- CONTEÚDO PRINCIPAL -->
-
     <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 lg:px-6 py-5 space-y-5">
 
-
-
         <!-- =====================================================================
-
              PÁGINA 1: VISÃO GERAL & OCUPAÇÃO
-
         ====================================================================== -->
-
         <div id="page1" class="page-content space-y-5">
-
             <!-- Banner de Filtro Rápido -->
-
             <div class="bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-emerald-500/10 border border-teal-500/25 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
-
                 <div>
-
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white">Visão Geral de Capacidade & Ocupação Física</h2>
-
                     <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-
                         Consolidado das <strong id="bannerTotalGavetasP1">51.760 gavetas mapeadas</strong> (<code class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800">51.320 úteis + 440 bloqueadas</code>) nos 96 corredores da Unidade Itu.
-
                     </p>
-
                 </div>
-
                 <div class="flex flex-wrap items-center gap-2">
-
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Filtrar Visão por Sistema / Status:</span>
-
                     <div class="inline-flex flex-wrap rounded-lg bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 gap-0.5">
-
                         <button type="button" onclick="setVisaoGeralQuickFilter('ALL')" id="vgFilter-ALL" class="vg-filter-btn px-3 py-1 rounded-md text-xs font-semibold bg-teal-500 text-white cursor-pointer transition">Todos</button>
-
                         <button type="button" onclick="setVisaoGeralQuickFilter('ORG')" id="vgFilter-ORG" class="vg-filter-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition">Organizer</button>
-
                         <button type="button" onclick="setVisaoGeralQuickFilter('KDD')" id="vgFilter-KDD" class="vg-filter-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition">Keep Doc</button>
-
                         <button type="button" onclick="setVisaoGeralQuickFilter('HIB')" id="vgFilter-HIB" class="vg-filter-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition">Híbrida</button>
-
                         <button type="button" onclick="setVisaoGeralQuickFilter('LIV')" id="vgFilter-LIV" class="vg-filter-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition">100% Livres</button>
-
                         <button type="button" onclick="setVisaoGeralQuickFilter('BLOQ')" id="vgFilter-BLOQ" class="vg-filter-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition">Bloqueadas</button>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <!-- LINHA 1: 5 CARTÕES KPI PRINCIPAIS -->
-
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-
                 <!-- KPI 1 -->
-
                 <div id="card-kpi-cap" onclick="handleKpiClick('capReal')" title="Clique para alternar estrutura (Padrão 24 cx → Coluna 12 cx → Todas)" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-sky-500 shadow-xs">
-
                     <div class="flex items-center justify-between">
-
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Capacidade Real (Gavetas)</span>
-
                         <span id="kpiCapReal" class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">51.320</span>
-
                     </div>
-
                     <div class="grid grid-cols-2 gap-2 mt-2">
-
                         <div>
-
                             <span class="block text-[10px] font-semibold uppercase text-sky-600 dark:text-sky-400">Gavetas Totais</span>
-
                             <div id="kpiCapTotalQtd" class="text-base sm:text-lg font-extrabold text-sky-500 leading-tight">51.760</div>
-
                             <span id="kpiCapRealPct" class="text-[10px] text-slate-500 dark:text-slate-400">99,15% útil</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-2">
-
                             <span class="block text-[10px] font-semibold uppercase text-rose-600 dark:text-rose-400">Bloqueadas</span>
-
                             <div id="kpiCapBloqQtd" class="text-base sm:text-lg font-extrabold text-rose-500 leading-tight">440</div>
-
                             <span id="kpiCapBloqPct" class="text-[10px] text-slate-500 dark:text-slate-400">0,85%</span>
-
                         </div>
-
                     </div>
-
                     <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden flex">
-
                         <div id="kpiCapRealBar" class="bg-sky-500 h-full transition-all duration-300" style="width: 99.15%"></div>
-
                         <div id="kpiCapBloqBar" class="bg-rose-500 h-full transition-all duration-300" style="width: 0.85%"></div>
-
                     </div>
-
                 </div>
-
-
 
                 <!-- KPI 2 -->
-
                 <div id="card-kpi-taxa" onclick="handleKpiClick('taxaOcup')" title="Clique para alternar o ranking de corredores por maior ocupação" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-amber-500 shadow-xs">
-
                     <div class="flex items-center justify-between">
-
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Taxa de Ocupação Física</span>
-
                         <span class="p-1 rounded-lg bg-amber-500/10 text-amber-500">
-
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
-
                         </span>
-
                     </div>
-
                     <div class="grid grid-cols-2 gap-2 mt-2">
-
                         <div>
-
                             <span class="block text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">Ocupação</span>
-
                             <div id="kpiTaxaOcup" class="text-xl sm:text-2xl font-extrabold text-amber-500 leading-tight">90,42%</div>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-2">
-
                             <span class="block text-[10px] font-semibold uppercase text-teal-600 dark:text-teal-400">Taxa Livre</span>
-
                             <div id="kpiTaxaLivre" class="text-xl sm:text-2xl font-extrabold text-teal-500 leading-tight">9,51%</div>
-
                         </div>
-
                     </div>
-
                     <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden flex">
-
                         <div id="kpiTaxaBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 90.42%"></div>
-
                         <div id="kpiTaxaLivreBar" class="bg-teal-500 h-full transition-all duration-300" style="width: 9.51%"></div>
-
                     </div>
-
                 </div>
-
-
 
                 <!-- KPI 3 -->
-
                 <div id="card-kpi-ocup" onclick="handleKpiClick('ocupadas')" title="Clique para filtrar apenas gavetas ocupadas (Com Caixa)" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-purple-500 shadow-xs">
-
                     <div class="flex items-center justify-between">
-
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Gavetas Ocupadas</span>
-
                         <span id="kpiOcupadas" class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">46.400</span>
-
                     </div>
-
                     <div class="grid grid-cols-4 gap-1 mt-2">
-
                         <div>
-
                             <span class="block text-[8px] font-semibold uppercase text-amber-600 dark:text-amber-400">Organizer</span>
-
                             <div id="kpiOcupOrgQtd" class="text-xs sm:text-sm font-extrabold text-amber-500 leading-tight">29.290</div>
-
                             <span id="kpiOcupOrgPct" class="text-[8px] text-slate-500 dark:text-slate-400">63,13%</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-1">
-
                             <span class="block text-[8px] font-semibold uppercase text-sky-600 dark:text-sky-400">Keep Doc</span>
-
                             <div id="kpiOcupKddQtd" class="text-xs sm:text-sm font-extrabold text-sky-500 leading-tight">9.666</div>
-
                             <span id="kpiOcupKddPct" class="text-[8px] text-slate-500 dark:text-slate-400">20,83%</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-1">
-
                             <span class="block text-[8px] font-semibold uppercase text-purple-600 dark:text-purple-400">Híbrida</span>
-
                             <div id="kpiOcupHibQtd" class="text-xs sm:text-sm font-extrabold text-purple-500 leading-tight">7.402</div>
-
                             <span id="kpiOcupHibPct" class="text-[8px] text-slate-500 dark:text-slate-400">15,95%</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-1">
-
                             <span class="block text-[8px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">Ctrl Gav.</span>
-
                             <div id="kpiOcupCtrlQtd" class="text-xs sm:text-sm font-extrabold text-emerald-500 leading-tight">42</div>
-
                             <span id="kpiOcupCtrlPct" class="text-[8px] text-slate-500 dark:text-slate-400">0,09%</span>
-
                         </div>
-
                     </div>
-
                     <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden flex">
-
                         <div id="kpiOcupOrgBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 63.13%"></div>
-
                         <div id="kpiOcupKddBar" class="bg-sky-500 h-full transition-all duration-300" style="width: 20.83%"></div>
-
                         <div id="kpiOcupHibBar" class="bg-purple-500 h-full transition-all duration-300" style="width: 15.95%"></div>
-
                         <div id="kpiOcupCtrlBar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0.09%"></div>
-
                     </div>
-
                 </div>
-
-
 
                 <!-- KPI 4 -->
-
                 <div id="card-kpi-livres" onclick="handleKpiClick('livres')" title="Clique para alternar filtro de gavetas livres (c/ Madeira → s/ Madeira → Auditoria → Todas)" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-teal-500 shadow-xs">
-
                     <div class="flex items-center justify-between">
-
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Gavetas 100% Livres</span>
-
                         <span id="kpiLivres" class="text-sm sm:text-base font-extrabold text-teal-500">4.920</span>
-
                     </div>
-
                     <div class="grid grid-cols-3 gap-1.5 mt-2">
-
                         <div>
-
                             <span class="block text-[9px] font-semibold uppercase text-teal-600 dark:text-teal-400">c/ Madeira</span>
-
                             <div id="kpiLivresMadQtd" class="text-xs sm:text-sm font-extrabold text-teal-500 leading-tight">2.525</div>
-
                             <span id="kpiLivresMadPct" class="text-[9px] text-slate-500 dark:text-slate-400">51,32%</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-1.5">
-
                             <span class="block text-[9px] font-semibold uppercase text-indigo-600 dark:text-indigo-400">s/ Madeira</span>
-
                             <div id="kpiLivresSemQtd" class="text-xs sm:text-sm font-extrabold text-indigo-400 leading-tight">2.016</div>
-
                             <span id="kpiLivresSemPct" class="text-[9px] text-slate-500 dark:text-slate-400">40,98%</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-1.5">
-
                             <span class="block text-[9px] font-semibold uppercase text-amber-600 dark:text-amber-400">Auditoria</span>
-
                             <div id="kpiLivresAudQtd" class="text-xs sm:text-sm font-extrabold text-amber-500 leading-tight">379</div>
-
                             <span id="kpiLivresAudPct" class="text-[9px] text-slate-500 dark:text-slate-400">7,70%</span>
-
                         </div>
-
                     </div>
-
                     <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden flex">
-
                         <div id="kpiLivresMadBar" class="bg-teal-500 h-full transition-all duration-300" style="width: 51.32%"></div>
-
                         <div id="kpiLivresSemBar" class="bg-indigo-400 h-full transition-all duration-300" style="width: 40.98%"></div>
-
                         <div id="kpiLivresAudBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 7.70%"></div>
-
                     </div>
-
                 </div>
-
-
 
                 <!-- KPI 5 -->
-
                 <div id="card-kpi-eq20" onclick="handleKpiClick('eq20')" title="Clique para abrir a análise detalhada de Volumetria & Tipologias (Padrão 20kg)" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-emerald-500 shadow-xs">
-
                     <div class="flex items-center justify-between">
-
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Capacidade Eq. 20kg</span>
-
                         <span id="kpiEq20" class="text-sm sm:text-base font-extrabold text-emerald-500">1.227.096</span>
-
                     </div>
-
                     <div class="grid grid-cols-3 gap-1.5 mt-2">
-
                         <div>
-
                             <span class="block text-[9px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">Ocupado</span>
-
                             <div id="kpiEq20OcupQtd" class="text-xs sm:text-sm font-extrabold text-emerald-500 leading-tight">1.001.830</div>
-
                             <span id="kpiEq20OcupPct" class="text-[9px] text-slate-500 dark:text-slate-400">81,64%</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-1.5">
-
                             <span class="block text-[9px] font-semibold uppercase text-teal-600 dark:text-teal-400">Livre Conc.</span>
-
                             <div id="kpiEq20ConcQtd" class="text-xs sm:text-sm font-extrabold text-teal-400 leading-tight">115.764</div>
-
                             <span id="kpiEq20ConcPct" class="text-[9px] text-slate-500 dark:text-slate-400">9,43%</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-1.5">
-
                             <span class="block text-[9px] font-semibold uppercase text-amber-600 dark:text-amber-400">Livre Res.</span>
-
                             <div id="kpiEq20ResQtd" class="text-xs sm:text-sm font-extrabold text-amber-500 leading-tight">109.502</div>
-
                             <span id="kpiEq20ResPct" class="text-[9px] text-slate-500 dark:text-slate-400">8,92%</span>
-
                         </div>
-
                     </div>
-
                     <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden flex">
-
                         <div id="kpiEq20OcupBar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 81.64%"></div>
-
                         <div id="kpiEq20ConcBar" class="bg-teal-400 h-full transition-all duration-300" style="width: 9.43%"></div>
-
                         <div id="kpiEq20ResBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 8.92%"></div>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <!-- LINHA 2: GRÁFICO DE PIZZA 3D (SISTEMAS) + GRÁFICO EMPILHADO POR NÍVEL (A-E) -->
-
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-
                 <!-- Pizza 3D: Distribuição por Sistema / Disponibilidade -->
-
                 <div class="lg:col-span-5 pbi-card bg-white dark:bg-pbi-darkCard rounded-xl p-5 border border-slate-200 dark:border-pbi-darkBorder flex flex-col">
-
                     <div class="flex items-center justify-between mb-2">
-
                         <div>
-
                             <h2 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">Distribuição por Sistema & Status</h2>
-
                             <p class="text-xs text-slate-400">Clique em uma fatia para filtrar todo o painel</p>
-
                         </div>
-
                         <div class="text-right">
-
                             <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">Total Consolidado (Gavetas)</span>
-
                             <span id="donutCenterVal" class="text-sm font-extrabold text-slate-900 dark:text-white">51.760</span>
-
                             <span class="text-[10px] text-slate-400">gavetas</span>
-
                         </div>
-
                     </div>
-
                     <div id="pie3dContainer" class="relative flex-1 min-h-[265px] flex flex-col items-center justify-center select-none">
-
                         <canvas id="chartDonutSistema" class="w-full h-[215px] cursor-pointer"></canvas>
-
                         <div id="pie3dTooltip" class="pointer-events-none hidden fixed z-50 px-3 py-2 rounded-lg text-xs font-medium bg-slate-900/95 text-white shadow-xl border border-slate-700 backdrop-blur-xs"></div>
-
                         <div id="pie3dLegend" class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mt-2 text-[11px] font-medium text-slate-700 dark:text-slate-300"></div>
-
                     </div>
-
                 </div>
-
-
 
                 <!-- Barras Empilhadas por Nível Vertical (A, B, C, D, E) -->
-
                 <div class="lg:col-span-7 pbi-card bg-white dark:bg-pbi-darkCard rounded-xl p-5 border border-slate-200 dark:border-pbi-darkBorder flex flex-col">
-
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-
                         <div>
-
                             <h2 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">Ocupação & Disponibilidade por Nível Vertical</h2>
-
                             <p class="text-xs text-slate-400">Clique em um nível (A a E) para isolar a altura da estante</p>
-
                         </div>
-
                         <div class="flex items-center gap-3 text-[11px]">
-
                             <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-sky-500 inline-block"></span> Ocupadas</span>
-
                             <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-teal-400 inline-block"></span> Livre c/ Madeira</span>
-
                             <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-indigo-400 inline-block"></span> Livre s/ Madeira</span>
-
                             <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-rose-500 inline-block"></span> Bloqueio/Ctrl</span>
-
                         </div>
-
                     </div>
-
                     <div class="relative flex-1 min-h-[260px]">
-
                         <canvas id="chartNivelStacked"></canvas>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <!-- LINHA 3: MAPA DE CALOR (HEATMAP 5x6) + RANKING DE CORREDORES -->
-
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
-
                 <!-- Heatmap 5x6 Interativo -->
-
                 <div class="xl:col-span-6 pbi-card bg-white dark:bg-pbi-darkCard rounded-xl p-5 border border-slate-200 dark:border-pbi-darkBorder">
-
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-
                         <div>
-
                             <h2 id="heatmapTitle" class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">Mapa de Calor: Zoneamento (30 Zonas)</h2>
-
                             <p class="text-xs text-slate-400">Taxa de Ocupação (%) e Gavetas Livres • Clique na célula para filtrar</p>
-
                         </div>
-
                         <div class="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-
                             <span>Livre</span>
-
                             <span class="w-3.5 h-3.5 rounded bg-teal-600"></span>
-
                             <span class="w-3.5 h-3.5 rounded bg-emerald-600"></span>
-
                             <span class="w-3.5 h-3.5 rounded bg-amber-500"></span>
-
                             <span class="w-3.5 h-3.5 rounded bg-orange-600"></span>
-
                             <span class="w-3.5 h-3.5 rounded bg-rose-600"></span>
-
                             <span>Lotado</span>
-
                         </div>
-
                     </div>
-
-
 
                     <div class="overflow-x-auto">
-
                         <div id="heatmapGrid" class="min-w-[540px]"></div>
-
                     </div>
-
                 </div>
-
-
 
                 <!-- Ranking Top 15 Corredores -->
-
                 <div class="xl:col-span-6 pbi-card bg-white dark:bg-pbi-darkCard rounded-xl p-5 border border-slate-200 dark:border-pbi-darkBorder flex flex-col">
-
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-
                         <div>
-
                             <h2 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">Ranking Top 15 Corredores</h2>
-
                             <p class="text-xs text-slate-400">Clique em uma barra para filtrar o corredor específico</p>
-
                         </div>
-
                         <div class="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700">
-
                             <button id="btnRankLivres" type="button" onclick="setCorredorRankMode('livres')" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-500 text-white shadow-xs transition cursor-pointer">
-
                                 Mais Gavetas Livres
-
                             </button>
-
                             <button id="btnRankOcup" type="button" onclick="setCorredorRankMode('ocupacao')" class="px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 transition cursor-pointer">
-
                                 Maior Ocupação (%)
-
                             </button>
-
                         </div>
-
                     </div>
-
                     <div class="relative flex-1 min-h-[300px]">
-
                         <canvas id="chartTopCorredores"></canvas>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
-
 
         <!-- =====================================================================
-
              PÁGINA 2: VOLUMETRIA & TIPOLOGIAS (PADRÃO 20KG)
-
         ====================================================================== -->
-
         <div id="page2" class="page-content hidden space-y-5">
-
             <!-- Banner Informativo de Contexto -->
-
             <div class="bg-gradient-to-r from-sky-500/10 via-teal-500/10 to-emerald-500/10 border border-teal-500/25 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
-
                 <div>
-
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white">Análise Volumétrica de Caixas Ativas & Conversão Padrão 20kg</h2>
-
                     <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-
                         Consolidado das <strong id="bannerTotalCaixas">1.162.655 caixas armazenadas</strong> convertidas pelo fator volumétrico oficial da aba <code class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800">TIPOLOGIAS x CONVERSOES</code>.
-
                     </p>
-
                 </div>
-
                 <div class="flex flex-wrap items-center gap-2">
-
                     <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Filtrar Tipologias por Sistema:</span>
-
                     <div class="inline-flex rounded-lg bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700">
-
                         <button type="button" onclick="setTipologiaSysFilter('ALL')" id="tipSys-ALL" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold bg-teal-500 text-white cursor-pointer">Todos</button>
-
                         <button type="button" onclick="setTipologiaSysFilter('ORGANIZER')" id="tipSys-ORGANIZER" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">Organizer</button>
-
                         <button type="button" onclick="setTipologiaSysFilter('KEEP DOC')" id="tipSys-KEEP DOC" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">Keep Doc</button>
-
                         <button type="button" onclick="setTipologiaSysFilter('HÍBRIDA')" id="tipSys-HÍBRIDA" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">Híbrida</button>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <!-- 4 KPIs de Volumetria -->
-
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
                 <div onclick="setTipologiaSysFilter(tipologiaSysFilter === 'ORGANIZER' ? 'ALL' : 'ORGANIZER')" title="Clique para alternar filtro Organizer / Todos" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-sky-500">
-
                     <div class="flex items-center justify-between">
-
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Caixas Físicas Ativas</span>
-
                         <span id="kpiVolCaixas" class="text-sm font-extrabold text-slate-900 dark:text-white">1.162.655</span>
-
                     </div>
-
                     <div class="grid grid-cols-2 gap-2 mt-2">
-
                         <div id="boxVolOrg" class="transition-opacity duration-200">
-
                             <span class="block text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">Organizer (incl. Híbridas)</span>
-
                             <div id="kpiVolOrgQtd" class="text-base sm:text-lg font-extrabold text-amber-500 leading-tight">866.814</div>
-
                             <span id="kpiVolOrgPct" class="text-[10px] text-slate-500 dark:text-slate-400">74,55% (29.290 ded. + 7.402 híb.)</span>
-
                         </div>
-
                         <div id="boxVolKdd" class="border-l border-slate-200 dark:border-slate-700 pl-2 transition-opacity duration-200">
-
                             <span class="block text-[10px] font-semibold uppercase text-sky-600 dark:text-sky-400">Keep Doc (incl. Híbridas)</span>
-
                             <div id="kpiVolKddQtd" class="text-base sm:text-lg font-extrabold text-sky-500 leading-tight">295.841</div>
-
                             <span id="kpiVolKddPct" class="text-[10px] text-slate-500 dark:text-slate-400">25,45% (9.666 ded. + 7.402 híb.)</span>
-
                         </div>
-
                     </div>
-
                     <div class="w-full h-1.5 bg-sky-500/25 rounded-full mt-2 overflow-hidden flex">
-
                         <div id="kpiVolOrgBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 74.55%"></div>
-
                         <div id="kpiVolKddBar" class="bg-sky-500 h-full transition-all duration-300" style="width: 25.45%"></div>
-
                     </div>
-
                 </div>
-
                 <div onclick="setTipologiaSysFilter(tipologiaSysFilter === 'KEEP DOC' ? 'ALL' : 'KEEP DOC')" title="Clique para alternar filtro Keep Doc / Todos" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-teal-500">
-
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Volume Ocupado (Eq. 20kg)</span>
-
                     <div id="kpiVolEq20" class="text-2xl sm:text-3xl font-extrabold text-teal-500 mt-2">1.001.830,00</div>
-
                     <div id="kpiVolEq20Sub" class="text-xs text-slate-500 dark:text-slate-400 mt-1">81,64% da capacidade útil (1.227.096)</div>
-
                 </div>
-
                 <div onclick="switchPage('page1'); setVisaoGeralQuickFilter('LIV')" title="Clique para ver gavetas livres no mapa operacional" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-emerald-500">
-
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Espaço Livre Total (Eq. 20kg)</span>
-
                     <div id="kpiVolLivreTotal" class="text-2xl sm:text-3xl font-extrabold text-emerald-500 mt-2">225.266,00</div>
-
                     <div id="kpiVolLivreSub" class="text-xs text-slate-500 dark:text-slate-400 mt-1">18,36% de ociosidade volumétrica</div>
-
                 </div>
-
                 <div onclick="setTipologiaSysFilter('ALL')" title="Clique para restaurar todas as tipologias" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-amber-500">
-
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Composição do Espaço Livre</span>
-
                     <div class="grid grid-cols-2 gap-2 mt-2">
-
                         <div>
-
                             <span class="block text-[10px] font-semibold uppercase text-teal-600 dark:text-teal-400">Concentrado (Gav. Cheia)</span>
-
                             <div id="kpiVolConcentrado" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white leading-tight">115.764,00</div>
-
                             <span id="kpiVolConcentradoPct" class="text-[10px] text-slate-500 dark:text-slate-400">51,39% do livre</span>
-
                         </div>
-
                         <div class="border-l border-slate-200 dark:border-slate-700 pl-2">
-
                             <span class="block text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">Pulverizado (Residual)</span>
-
                             <div id="kpiVolPulverizado" class="text-base sm:text-lg font-extrabold text-amber-500 leading-tight">109.502,00</div>
-
                             <span id="kpiVolPulverizadoPct" class="text-[10px] text-slate-500 dark:text-slate-400">48,61% do livre</span>
-
                         </div>
-
                     </div>
-
                     <div class="w-full h-1.5 bg-amber-500/30 rounded-full mt-2 overflow-hidden flex">
-
                         <div id="kpiVolConcBar" class="bg-teal-500 h-full transition-all duration-300" style="width: 51.39%"></div>
-
                         <div id="kpiVolPulvBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 48.61%"></div>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <!-- Gráfico Horizontal de Tipologias + Tabela Detalhada -->
-
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
-
                 <div class="xl:col-span-6 pbi-card bg-white dark:bg-pbi-darkCard rounded-xl p-5 border border-slate-200 dark:border-pbi-darkBorder flex flex-col">
-
                     <div class="mb-3">
-
                         <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">Caixas Físicas vs. Equivalente Padrão 20kg por Tipologia</h3>
-
                         <p class="text-xs text-slate-400">Impacto da compactação (ex: BP ocupa 0,33x do volume de 1 caixa 20kg)</p>
-
                     </div>
-
                     <div class="relative flex-1 min-h-[380px]">
-
                         <canvas id="chartTipologias"></canvas>
-
                     </div>
-
                 </div>
-
-
 
                 <div class="xl:col-span-6 pbi-card bg-white dark:bg-pbi-darkCard rounded-xl p-5 border border-slate-200 dark:border-pbi-darkBorder flex flex-col">
-
                     <div class="flex items-center justify-between mb-3">
-
                         <div>
-
                             <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">Detalhamento por Modelo de Caixa</h3>
-
                             <p id="tipologiasCountSub" class="text-xs text-slate-400">16 tipologias cadastradas na operação Itu</p>
-
                         </div>
-
                         <span class="text-xs font-semibold text-teal-500">100% Reconciliado</span>
-
                     </div>
-
                     <div class="overflow-x-auto max-h-[380px] border border-slate-200 dark:border-slate-700 rounded-lg">
-
                         <table class="w-full text-left border-collapse text-xs">
-
                             <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 sticky top-0">
-
                                 <tr>
-
                                     <th class="p-2.5 font-bold">Modelo</th>
-
                                     <th onclick="toggleTipologiaSort()" title="Clique para alternar ordenação por Sistema (A–Z / Z–A)" class="p-2.5 font-bold cursor-pointer hover:text-teal-500 select-none">Sistema <span id="tipSortIndicator">▲</span></th>
-
                                     <th class="p-2.5 font-bold text-right">Conversor</th>
-
                                     <th class="p-2.5 font-bold text-right">Qtd. Caixas</th>
-
                                     <th class="p-2.5 font-bold text-right">Equiv. 20kg</th>
-
                                 </tr>
-
                             </thead>
-
                             <tbody id="tbodyTipologias" class="divide-y divide-slate-200 dark:divide-slate-700/70"></tbody>
-
                         </table>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </main>
 
-
-
     <!-- FOOTER -->
-
     <footer class="bg-white dark:bg-[#0B1120] border-t border-slate-200 dark:border-slate-800 px-4 lg:px-6 py-3 mt-6">
-
         <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-
             <div class="flex items-center gap-2">
-
                 <strong>Galpão 07 — Unidade Itu</strong> • Painel Executivo Interativo (Cross-Filtering Ativo)
-
                 <span id="auditIntegrityBadge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-
                     ✓ Base Certificada
-
                 </span>
-
             </div>
-
             <div>
-
                 Fonte: <span id="footerFileName" class="font-mono">GAVETAS_MAP_ITU_23.11.2026.xlsx</span> | <span id="footerSummaryStats">51.760 Gavetas • 1.162.655 Caixas Ativas</span>
-
             </div>
-
         </div>
-
     </footer>
 
-
-
     <!-- =========================================================================
-
          MOTOR DE DADOS EXATOS & INTERATIVIDADE POWER BI (JAVASCRIPT)
-
     ========================================================================== -->
-
     <script>
-
         let CORREDORES = [
-
             "IA","IB","IC","ID","IE","IF","IG","IH","II","IJ","IK","IL","IM","IN","IO","IP","IQ","IR","IS","IT","IU","IV","IW","IX","IY","IZ",
-
             "JA","JB","JC","JD","JE","JF","JG","JH","JI","JJ","JK","JL","JM","JN","JO","JP","JQ","JR","JS","JT","JU","JV","JW","JX","JY","JZ",
-
             "KA","KB","KC","KD","KE","KF","KG","KH","KI","KJ","KK","KL","KM","KN","KO","KP","KQ","KR","KS","KT","KU","KV","KW","KX","KY","KZ",
-
             "LA","LB","LC","LD","LE","LF","LG","LH","LI","LJ","LK","LL","LM","LN","LO","LP","LQ","LR"
-
         ];
-
-
 
         let ZONEAMENTOS = [
-
             "A1","A2","A3","A4","A5","A6",
-
             "B1","B2","B3","B4","B5","B6",
-
             "C1","C2","C3","C4","C5","C6",
-
             "D1","D2","D3","D4","D5","D6",
-
             "E1","E2","E3","E4","E5","E6"
-
         ];
-
-
 
         const SISTEMAS = ["ORGANIZER", "KEEP DOC", "NENHUM", "HÍBRIDA", "CONTROLE DE GAVETA"];
-
         const SITUACOES = ["Com Caixa", "Livre c/ Madeira", "Livre s/ Madeira", "Bloqueio Estrutural", "Em Auditoria"];
 
-
-
         let DIV_BY_CORR = [
-
             0,0,0,0,0,144,144,24,48,288,168,264,72,216,120,168,144,144,48,168,144,216,72,48,72,72,
-
             24,96,96,72,24,48,48,48,48,0,96,120,0,96,120,120,48,24,72,96,72,0,48,48,24,48,
-
             48,24,96,0,48,24,96,48,144,96,144,0,24,144,96,24,96,48,0,96,72,24,0,72,0,0,
-
             48,0,48,24,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
         ];
-
-
 
         let TIPOLOGIAS_DATA = [
-
             { modelo: "CE", sistema: "ORGANIZER", fator: 1.20, caixas: 480181, eq20: Number((480181 * 1.20).toFixed(2)) },
-
             { modelo: "BP", sistema: "ORGANIZER", fator: 1 / 3, fatorLabel: "÷ 3 (0,33x)", caixas: 242712, eq20: Number((242712 / 3).toFixed(2)) },
-
             { modelo: "7KG", sistema: "KEEP DOC", fator: 1 / 3, fatorLabel: "÷ 3 (0,33x)", caixas: 100684, eq20: Number((100684 / 3).toFixed(2)) },
-
             { modelo: "20KG", sistema: "KEEP DOC", fator: 1.00, caixas: 98092, eq20: 98092.00 },
-
             { modelo: "30KG", sistema: "KEEP DOC", fator: 1.20, caixas: 90514, eq20: Number((90514 * 1.20).toFixed(2)) },
-
             { modelo: "BE", sistema: "ORGANIZER", fator: 0.60, fatorLabel: "0,60x (÷ 1,67)", caixas: 62456, eq20: Number((62456 * 0.60).toFixed(2)) },
-
             { modelo: "CT", sistema: "ORGANIZER", fator: 1.00, caixas: 30536, eq20: 30536.00 },
-
             { modelo: "C", sistema: "ORGANIZER", fator: 1.20, caixas: 29978, eq20: Number((29978 * 1.20).toFixed(2)) },
-
             { modelo: "TB", sistema: "ORGANIZER", fator: 0.1412, caixas: 20102, eq20: Number((20102 * 0.1412).toFixed(2)) },
-
             { modelo: "LIVRO", sistema: "KEEP DOC", fator: 0.60, caixas: 3394, eq20: Number((3394 * 0.60).toFixed(2)) },
-
             { modelo: "16KG", sistema: "KEEP DOC", fator: 0.60, caixas: 1472, eq20: Number((1472 * 0.60).toFixed(2)) },
-
             { modelo: "P 10KG", sistema: "KEEP DOC", fator: 0.50, caixas: 1185, eq20: Number((1185 * 0.50).toFixed(2)) },
-
             { modelo: "LV", sistema: "ORGANIZER", fator: 1.00, caixas: 670, eq20: 670.00 },
-
             { modelo: "13KG", sistema: "KEEP DOC", fator: 0.60, fatorLabel: "0,60x (÷ 1,67)", caixas: 500, eq20: Number((500 * 0.60).toFixed(2)) },
-
             { modelo: "BN", sistema: "ORGANIZER", fator: 1 / 2.5, fatorLabel: "÷ 2,5 (0,40x)", caixas: 175, eq20: Number((175 / 2.5).toFixed(2)) },
-
             { modelo: "BAU", sistema: "ORGANIZER", fator: 1 / 0.2083, fatorLabel: "÷ 0,2083 (4,80x)", caixas: 4, eq20: Number((4 / 0.2083).toFixed(2)) }
-
         ];
 
-
-
         let isCustomDatasetLoaded = false;
-
         let importedResumoMetrics = null;
-
         let RAW_ROWS = [];
 
-
-
         function buildWarehouseDataset() {
-
             const freeHighlights = {
-
                 "LC": 258, "LD": 252, "IL": 212, "IJ": 174, "IK": 172, "IP": 145, "IN": 138,
-
                 "JD": 123, "JW": 121, "IO": 114, "IM": 111, "JB": 86
-
             };
 
-
-
             const zoneFreeTargets = [
-
                 26,  28,  32,  14,  22,  64,
-
                113, 137, 171, 135, 175, 196,
-
                246, 192, 210, 121, 151, 135,
-
                231, 165, 187, 120, 120, 155,
-
                372, 294, 332, 228, 236, 312
-
             ];
 
-
-
             let remOrg = 29290;
-
             let remKdd = 9666;
-
             let remHib = 7402;
-
             let remCtrlCaixa = 42;
-
             let remLivreMad = 2525;
-
             let remLivreSem = 2016;
-
             let remBloq = 440;
-
             let remCtrl = 379;
-
             let remColunas = 382;
 
-
-
             const corrWeights = CORREDORES.map((c, idx) => {
-
                 if (freeHighlights[c]) return freeHighlights[c];
-
                 return 24 + ((idx * 7) % 23);
-
             });
-
             const sumWeights = corrWeights.reduce((a, b) => a + b, 0);
 
-
-
             const corrFreeQuota = CORREDORES.map((c, idx) => {
-
                 if (freeHighlights[c]) return freeHighlights[c];
-
                 return Math.round((corrWeights[idx] / sumWeights) * 4920);
-
             });
-
             let diffFree = 4920 - corrFreeQuota.reduce((a, b) => a + b, 0);
-
             for (let i = 0; diffFree !== 0; i = (i + 1) % 96) {
-
                 if (!freeHighlights[CORREDORES[i]]) {
-
                     corrFreeQuota[i] += diffFree > 0 ? 1 : -1;
-
                     diffFree += diffFree > 0 ? -1 : 1;
-
                 }
-
             }
 
-
-
             const ldIndex = CORREDORES.indexOf("LD");
-
             for (let cIdx = 0; cIdx < 96; cIdx++) {
-
                 const sectorGroup = cIdx % 2;
-
                 const finalCorrTot = cIdx <= ldIndex ? (20 * 29) : (20 * 15);
 
-
-
                 let corrRem = finalCorrTot;
-
                 let corrFreeRem = corrFreeQuota[cIdx];
 
-
-
                 for (let niv = 0; niv < 5; niv++) {
-
                     for (let s = 0; s < 3; s++) {
-
                         const zIdx = niv * 6 + (sectorGroup * 3 + s);
-
                         const isLastCell = (cIdx === 95 && niv === 4 && s === 2);
 
-
-
                         let cellTot = Math.round(corrRem / ((4 - niv) * 3 + (3 - s)));
-
                         if (isLastCell) cellTot = corrRem;
-
                         corrRem -= cellTot;
 
-
-
                         const zoneFreeRatio = zoneFreeTargets[zIdx] / 4920;
-
                         let cellFree = (niv === 4 && s === 2) ? corrFreeRem : Math.min(cellTot, Math.round(corrFreeQuota[cIdx] * zoneFreeRatio * 2.1));
-
                         if (cellFree > corrFreeRem) cellFree = corrFreeRem;
-
                         if (cellFree > cellTot) cellFree = cellTot;
-
                         corrFreeRem -= cellFree;
 
-
-
                         let cellBloq = 0;
-
                         if (remBloq > 0 && s === 1 && (cellTot - cellFree) >= 4 && (cIdx % 2 === 0 || cIdx > 60)) {
-
                             cellBloq = Math.min(remBloq, cellTot - cellFree, (cIdx < 20 ? 6 : 4));
-
                             remBloq -= cellBloq;
-
                         }
-
-
 
                         let cellOcup = cellTot - cellFree - cellBloq;
 
-
-
                         let cellMad = Math.min(remLivreMad, Math.round(cellFree * (2525 / 4920)));
-
                         let cellSem = Math.min(remLivreSem, Math.round(cellFree * (2016 / 4920)));
-
                         let cellCtrl = cellFree - cellMad - cellSem;
-
                         if (cellCtrl > remCtrl) {
-
                             const extra = cellCtrl - remCtrl;
-
                             cellCtrl = remCtrl;
-
                             if (remLivreMad - cellMad >= extra) cellMad += extra;
-
                             else cellSem += extra;
-
                         } else if (cellCtrl < 0) {
-
                             cellMad += cellCtrl;
-
                             cellCtrl = 0;
-
                         }
-
                         remLivreMad -= cellMad;
-
                         remLivreSem -= cellSem;
-
                         remCtrl -= cellCtrl;
 
-
-
                         let cellCtrlCx = 0;
-
                         if (remCtrlCaixa > 0 && cellOcup > 10 && cIdx % 4 === 1 && niv === 2) {
-
                             cellCtrlCx = Math.min(remCtrlCaixa, 2);
-
                             remCtrlCaixa -= cellCtrlCx;
-
                         }
-
                         let remCellOcup = cellOcup - cellCtrlCx;
-
                         const totalSysBase = 29290 + 9666 + 7402;
-
                         let cellOrg = Math.min(remOrg, Math.round(remCellOcup * (29290 / totalSysBase)));
-
                         let cellKdd = Math.min(remKdd, Math.round(remCellOcup * (9666 / totalSysBase)));
-
                         let cellHib = remCellOcup - cellOrg - cellKdd;
-
                         if (cellHib > remHib) {
-
                             const diff = cellHib - remHib;
-
                             cellHib = remHib;
-
                             if (remOrg - cellOrg >= diff) cellOrg += diff;
-
                             else cellKdd += diff;
-
                         }
-
                         remOrg -= cellOrg;
-
                         remKdd -= cellKdd;
-
                         remHib -= cellHib;
 
-
-
                         let isCol = 0;
-
                         if (remColunas > 0 && (cellOrg + cellKdd + cellHib) > 0) {
-
                             isCol = 1;
-
                         }
-
-
 
                         if (cellOrg > 0) {
-
                             const colOrg = isCol && remColunas > 0 ? Math.min(cellOrg, remColunas, 4) : 0;
-
                             if (colOrg > 0) {
-
                                 RAW_ROWS.push([cIdx, zIdx, 0, 0, 1, colOrg]);
-
                                 remColunas -= colOrg;
-
                             }
-
                             if (cellOrg - colOrg > 0) {
-
                                 RAW_ROWS.push([cIdx, zIdx, 0, 0, 0, cellOrg - colOrg]);
-
                             }
-
                         }
-
                         if (cellKdd > 0) RAW_ROWS.push([cIdx, zIdx, 1, 0, 0, cellKdd]);
-
                         if (cellHib > 0) RAW_ROWS.push([cIdx, zIdx, 3, 0, 0, cellHib]);
-
                         if (cellCtrlCx > 0) RAW_ROWS.push([cIdx, zIdx, 4, 0, 0, cellCtrlCx]);
-
                         if (cellMad > 0) RAW_ROWS.push([cIdx, zIdx, 2, 1, 0, cellMad]);
-
                         if (cellSem > 0) RAW_ROWS.push([cIdx, zIdx, 2, 2, 0, cellSem]);
-
                         if (cellBloq > 0) RAW_ROWS.push([cIdx, zIdx, 2, 3, 0, cellBloq]);
-
                         if (cellCtrl > 0) RAW_ROWS.push([cIdx, zIdx, 2, 4, 0, cellCtrl]);
-
                     }
-
                 }
-
             }
-
-
 
             const adjustBucket = (sIdx, sitIdx, delta) => {
-
                 if (delta === 0) return;
-
                 for (let i = RAW_ROWS.length - 1; i >= 0 && delta !== 0; i--) {
-
                     if (RAW_ROWS[i][2] === sIdx && RAW_ROWS[i][3] === sitIdx && RAW_ROWS[i][5] + delta >= 0) {
-
                         RAW_ROWS[i][5] += delta;
-
                         delta = 0;
-
                     }
-
                 }
-
             };
-
-
 
             adjustBucket(4, 0, remCtrlCaixa);
-
             adjustBucket(2, 1, remLivreMad);
-
             adjustBucket(2, 2, remLivreSem);
-
             adjustBucket(2, 3, remBloq);
-
             adjustBucket(2, 4, remCtrl);
 
-
-
             const exactSystemTargets = [
-
                 { sys: 0, target: 29290 },
-
                 { sys: 1, target: 9666 },
-
                 { sys: 3, target: 7402 },
-
                 { sys: 4, target: 42 }
-
             ];
 
-
-
             exactSystemTargets.forEach(({ sys, target }) => {
-
                 let currentSum = RAW_ROWS.reduce((acc, r) => (r[3] === 0 && r[2] === sys ? acc + r[5] : acc), 0);
-
                 let delta = target - currentSum;
-
                 if (delta > 0) {
-
                     for (let i = RAW_ROWS.length - 1; i >= 0 && delta > 0; i--) {
-
                         if (RAW_ROWS[i][3] === 0 && RAW_ROWS[i][2] === sys) {
-
                             RAW_ROWS[i][5] += delta;
-
                             delta = 0;
-
                         }
-
                     }
-
                 } else if (delta < 0) {
-
                     let toRemove = -delta;
-
                     for (let i = RAW_ROWS.length - 1; i >= 0 && toRemove > 0; i--) {
-
                         if (RAW_ROWS[i][3] === 0 && RAW_ROWS[i][2] === sys && RAW_ROWS[i][5] > 0) {
-
                             const dec = Math.min(toRemove, RAW_ROWS[i][5]);
-
                             RAW_ROWS[i][5] -= dec;
-
                             toRemove -= dec;
-
                         }
-
                     }
-
                 }
-
             });
-
-
 
             if (remColunas > 0) {
-
                 for (let i = 0; i < RAW_ROWS.length && remColunas > 0; i++) {
-
                     const r = RAW_ROWS[i];
-
                     if (r[4] === 0 && r[3] !== 3 && r[5] > 1) {
-
                         const take = Math.min(remColunas, r[5] - 1);
-
                         r[5] -= take;
-
                         RAW_ROWS.push([r[0], r[1], r[2], r[3], 1, take]);
-
                         remColunas -= take;
-
                     }
-
                 }
-
             }
-
-
 
             verifyDatasetIntegrity();
-
         }
-
-
 
         function verifyDatasetIntegrity() {
-
             let tot = 0, org = 0, kdd = 0, hib = 0, livMad = 0, livSem = 0, bloq = 0, ctrl = 0, ctrlCx = 0, colUteis = 0;
-
             const corrTotals = new Array(96).fill(0);
-
             for (const [cIdx, , sIdx, sitIdx, isCol, qtd] of RAW_ROWS) {
-
                 tot += qtd;
-
                 corrTotals[cIdx] += qtd;
-
                 if (isCol === 1 && sitIdx !== 3) colUteis += qtd;
-
                 if (sitIdx === 0) {
-
                     if (sIdx === 0) org += qtd;
-
                     else if (sIdx === 1) kdd += qtd;
-
                     else if (sIdx === 3) hib += qtd;
-
                     else if (sIdx === 4) ctrlCx += qtd;
-
                 } else if (sitIdx === 1) livMad += qtd;
-
                 else if (sitIdx === 2) livSem += qtd;
-
                 else if (sitIdx === 3) bloq += qtd;
-
                 else if (sitIdx === 4) ctrl += qtd;
-
             }
-
             const ldIndex = CORREDORES.indexOf("LD");
-
             const corrValid = corrTotals.every((v, idx) => v === (idx <= ldIndex ? 580 : 300));
-
             const totalsValid = (tot === 51760 && org === 29290 && kdd === 9666 && hib === 7402 && ctrlCx === 42 && livMad === 2525 && livSem === 2016 && bloq === 440 && ctrl === 379 && colUteis === 382);
-
             const badge = document.getElementById('auditIntegrityBadge');
-
             if (badge) {
-
                 badge.textContent = (corrValid && totalsValid)
-
                     ? '✓ Base 100% Auditada (51.760 gavetas)'
-
                     : '⚠ Verificar Reconciliação';
-
             }
-
         }
-
-
 
         function syncKpiActiveStates() {
-
             const setCardState = (id, active) => {
-
                 const el = document.getElementById(id);
-
                 if (!el) return;
-
                 if (active) el.classList.add('kpi-active');
-
                 else el.classList.remove('kpi-active');
-
             };
-
             setCardState('card-kpi-cap', filterState.estrutura !== 'ALL');
-
             setCardState('card-kpi-taxa', corredorRankMode === 'ocupacao');
-
             setCardState('card-kpi-ocup', filterState.situacao === '0');
-
             setCardState('card-kpi-livres', filterState.situacao === 'ALL_LIVRES' || filterState.situacao === '1' || filterState.situacao === '2' || filterState.situacao === '4');
-
         }
-
-
 
         function renderFilterChips() {
-
             const container = document.getElementById('activeFilterChips');
-
             if (!container) return;
-
             const chips = [];
 
-
-
             if (filterState.sistema !== 'ALL') chips.push({ label: `Sistema: ${SISTEMAS[filterState.sistema]}`, key: 'sistema' });
-
             if (filterState.situacao !== 'ALL') {
-
                 const sitLabel = filterState.situacao === 'ALL_LIVRES' ? '100% Livres' : SITUACOES[filterState.situacao];
-
                 chips.push({ label: `Situação: ${sitLabel}`, key: 'situacao' });
-
             }
-
             if (filterState.zoneamentoExato) {
-
                 chips.push({ label: `Zoneamento: ${filterState.zoneamentoExato}`, key: 'zoneamento' });
-
             } else {
-
                 if (filterState.nivel !== 'ALL') chips.push({ label: `Nível: ${filterState.nivel}`, key: 'nivel' });
-
                 if (filterState.zona !== 'ALL') chips.push({ label: `Zona: ${filterState.zona}`, key: 'zona' });
-
             }
-
             if (filterState.corredor !== 'ALL') chips.push({ label: `Corredor: ${CORREDORES[filterState.corredor]}`, key: 'corredor' });
-
             if (filterState.estrutura !== 'ALL') chips.push({ label: `Estrutura: ${filterState.estrutura === '1' ? 'Coluna (12 cx)' : 'Padrão (24 cx)'}`, key: 'estrutura' });
 
-
-
             if (chips.length === 0) {
-
                 container.innerHTML = '';
-
                 return;
-
             }
-
-
 
             container.innerHTML = `<span class="text-[11px] font-medium text-slate-400">Filtros:</span>` + chips.map(ch => `
-
                 <button type="button" onclick="removeSingleFilter('${ch.key}')" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-teal-500/15 text-teal-600 dark:text-teal-300 border border-teal-500/30 hover:bg-teal-500/25 transition cursor-pointer">
-
                     ${ch.label}
-
                     <span class="font-bold">×</span>
-
                 </button>
-
             `).join('');
-
         }
-
-
 
         function removeSingleFilter(key) {
-
             if (key === 'zoneamento') {
-
                 filterState.zoneamentoExato = null;
-
                 filterState.nivel = 'ALL';
-
                 filterState.zona = 'ALL';
-
             } else {
-
                 filterState[key] = 'ALL';
-
             }
-
             updateDashboard();
-
         }
-
-
 
         function getFilteredRows() {
-
             return RAW_ROWS.filter(r => {
-
                 const [cIdx, zIdx, sIdx, sitIdx, isCol] = r;
-
                 const zName = ZONEAMENTOS[zIdx];
 
-
-
                 if (filterState.sistema !== 'ALL' && String(sIdx) !== filterState.sistema) return false;
-
                 if (filterState.situacao !== 'ALL') {
-
                     if (filterState.situacao === 'ALL_LIVRES') {
-
                         if (sitIdx !== 1 && sitIdx !== 2 && sitIdx !== 4) return false;
-
                     } else if (String(sitIdx) !== filterState.situacao) {
-
                         return false;
-
                     }
-
                 }
-
                 if (filterState.corredor !== 'ALL' && String(cIdx) !== filterState.corredor) return false;
-
                 if (filterState.estrutura !== 'ALL' && String(isCol) !== filterState.estrutura) return false;
 
-
-
                 if (filterState.zoneamentoExato) {
-
                     if (zName !== filterState.zoneamentoExato) return false;
-
                 } else {
-
                     if (filterState.nivel !== 'ALL' && zName[0] !== filterState.nivel) return false;
-
                     if (filterState.zona !== 'ALL' && zName[1] !== filterState.zona) return false;
-
                 }
-
                 return true;
-
             });
-
         }
 
-
-
         function updateDashboard() {
-
             renderFilterChips();
-
             syncVisaoGeralFilterButtons();
-
             const rows = getFilteredRows();
 
-
-
             let totalGavetas = 0;
-
             let capReal = 0;
-
             let ocupadas = 0;
-
             let orgCount = 0;
-
             let kddCount = 0;
-
             let hibCount = 0;
-
             let ctrlCaixaCount = 0;
-
             let livreMad = 0;
-
             let livreSem = 0;
-
             let bloqueio = 0;
-
             let controle = 0;
-
             let capEq20 = 0;
-
             let livreInteiroEq20 = 0;
 
-
-
             const byNivel = { A: [0,0,0,0], B: [0,0,0,0], C: [0,0,0,0], D: [0,0,0,0], E: [0,0,0,0] };
-
             const byZoneamento = {};
-
             ZONEAMENTOS.forEach(z => byZoneamento[z] = { capReal: 0, ocupadas: 0, livres: 0, total: 0 });
 
-
-
             const byCorredor = CORREDORES.map((c, idx) => ({
-
                 idx, corredor: c, total: 0, capReal: 0, ocupadas: 0,
-
                 organizer: 0, keepDoc: 0, hibrida: 0, ctrlGaveta: 0, livreComMad: 0, livreSemMad: 0,
-
                 eq20: 0, divLogico: DIV_BY_CORR[idx] || 0
-
             }));
 
-
-
             for (let i = 0; i < rows.length; i++) {
-
                 const [cIdx, zIdx, sIdx, sitIdx, isCol, qtd] = rows[i];
-
                 const zName = ZONEAMENTOS[zIdx] || 'A1';
-
                 const niv = byNivel[zName[0]] ? zName[0] : 'A';
-
                 const fator = isCol === 1 ? 12 : 24;
 
-
-
                 totalGavetas += qtd;
-
                 byZoneamento[zName].total += qtd;
-
                 byCorredor[cIdx].total += qtd;
 
-
-
                 if (sitIdx !== 3) {
-
                     capReal += qtd;
-
                     capEq20 += qtd * fator;
-
                     byZoneamento[zName].capReal += qtd;
-
                     byCorredor[cIdx].capReal += qtd;
-
                     byCorredor[cIdx].eq20 += qtd * fator;
-
                 }
-
-
 
                 if (sitIdx === 0) {
-
                     ocupadas += qtd;
-
                     byNivel[niv][0] += qtd;
-
                     byZoneamento[zName].ocupadas += qtd;
-
                     byCorredor[cIdx].ocupadas += qtd;
-
                     if (sIdx === 0) { orgCount += qtd; byCorredor[cIdx].organizer += qtd; }
-
                     else if (sIdx === 1) { kddCount += qtd; byCorredor[cIdx].keepDoc += qtd; }
-
                     else if (sIdx === 3) { hibCount += qtd; byCorredor[cIdx].hibrida += qtd; }
-
                     else if (sIdx === 4) { ctrlCaixaCount += qtd; byCorredor[cIdx].ctrlGaveta += qtd; }
-
                 } else if (sitIdx === 1) {
-
                     livreMad += qtd;
-
                     livreInteiroEq20 += qtd * fator;
-
                     byNivel[niv][1] += qtd;
-
                     byZoneamento[zName].livres += qtd;
-
                     byCorredor[cIdx].livreComMad += qtd;
-
                 } else if (sitIdx === 2) {
-
                     livreSem += qtd;
-
                     livreInteiroEq20 += qtd * fator;
-
                     byNivel[niv][2] += qtd;
-
                     byZoneamento[zName].livres += qtd;
-
                     byCorredor[cIdx].livreSemMad += qtd;
-
                 } else if (sitIdx === 3) {
-
                     bloqueio += qtd;
-
                     byNivel[niv][3] += qtd;
-
                 } else if (sitIdx === 4) {
-
                     controle += qtd;
-
                     livreInteiroEq20 += qtd * fator;
-
                     byNivel[niv][3] += qtd;
-
                     byZoneamento[zName].livres += qtd;
-
                 }
-
             }
 
-
-
             const totalLivres = livreMad + livreSem + controle;
-
             const taxaOcup = capReal > 0 ? (ocupadas / capReal) * 100 : 0;
 
-
-
             const isUnfiltered = filterState.sistema === 'ALL' && filterState.situacao === 'ALL' &&
-
                 filterState.nivel === 'ALL' && filterState.zona === 'ALL' &&
-
                 filterState.corredor === 'ALL' && filterState.estrutura === 'ALL' && !filterState.zoneamentoExato;
-
-
 
             const res = (isUnfiltered && importedResumoMetrics) ? importedResumoMetrics : null;
 
-
-
             const dispBloqueio = (res && res.bloqueadas !== null) ? res.bloqueadas : bloqueio;
-
             const dispOrg = (res && res.organizer !== null) ? res.organizer : ((!isCustomDatasetLoaded && isUnfiltered) ? 29290 : orgCount);
-
             const dispKdd = (res && res.keepDoc !== null) ? res.keepDoc : ((!isCustomDatasetLoaded && isUnfiltered) ? 9666 : kddCount);
-
             const dispHib = (res && res.hibrida !== null) ? res.hibrida : ((!isCustomDatasetLoaded && isUnfiltered) ? 7402 : hibCount);
-
             const dispCtrlCx = (res && res.ctrlGaveta !== null) ? res.ctrlGaveta : ((!isCustomDatasetLoaded && isUnfiltered) ? 42 : ctrlCaixaCount);
-
             const dispOcupadas = (res && res.ocupadas !== null && res.organizer === null && res.keepDoc === null && res.hibrida === null)
-
                 ? res.ocupadas
-
                 : (dispOrg + dispKdd + dispHib + dispCtrlCx);
-
             const dispLivreMad = (res && res.livreComMad !== null) ? res.livreComMad : livreMad;
-
             const dispLivreSem = (res && res.livreSemMad !== null) ? res.livreSemMad : livreSem;
-
             const dispLivreAud = (res && res.livreAuditoria !== null) ? res.livreAuditoria : controle;
-
             const dispTotalLivres = (res && res.totalLivres !== null && res.livreComMad === null && res.livreSemMad === null && res.livreAuditoria === null)
-
                 ? res.totalLivres
-
                 : (dispLivreMad + dispLivreSem + dispLivreAud);
 
-
-
             const somaConsolidadaGavetas = dispOcupadas + dispTotalLivres + dispBloqueio;
-
             const dispTotalGav = (res && res.totalGavetas !== null && somaConsolidadaGavetas === 0)
-
                 ? res.totalGavetas
-
                 : (isUnfiltered ? somaConsolidadaGavetas : totalGavetas);
-
             const dispCapReal = Math.max(0, dispTotalGav - dispBloqueio);
-
             const dispTaxaOcup = dispCapReal > 0 ? (dispOcupadas / dispCapReal) * 100 : taxaOcup;
 
-
-
             document.getElementById('kpiCapReal').textContent = fmtInt(dispCapReal);
-
             const bannerP1El = document.getElementById('bannerTotalGavetasP1');
-
             if (bannerP1El) {
-
                 bannerP1El.textContent = `${fmtInt(dispTotalGav)} gavetas (${fmtInt(dispCapReal)} úteis + ${fmtInt(dispBloqueio)} bloq.)`;
-
             }
-
             const pctCapReal = dispTotalGav > 0 ? (dispCapReal / dispTotalGav) * 100 : 0;
-
             const pctCapBloq = dispTotalGav > 0 ? (dispBloqueio / dispTotalGav) * 100 : 0;
-
             document.getElementById('kpiCapTotalQtd').textContent = fmtInt(dispTotalGav);
-
             document.getElementById('kpiCapRealPct').textContent = `${pctCapReal.toFixed(2).replace('.', ',')}% útil`;
-
             document.getElementById('kpiCapBloqQtd').textContent = fmtInt(dispBloqueio);
-
             document.getElementById('kpiCapBloqPct').textContent = `${pctCapBloq.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiCapRealBar').style.width = `${pctCapReal}%`;
-
             document.getElementById('kpiCapBloqBar').style.width = `${pctCapBloq}%`;
 
-
-
             const dispTaxaLivre = dispTotalGav > 0 ? (dispTotalLivres / dispTotalGav) * 100 : 0;
-
             document.getElementById('kpiTaxaOcup').textContent = fmtPct(dispTaxaOcup);
-
             document.getElementById('kpiTaxaLivre').textContent = fmtPct(dispTaxaLivre);
-
             document.getElementById('kpiTaxaBar').style.width = `${Math.min(100, dispTaxaOcup)}%`;
-
             document.getElementById('kpiTaxaLivreBar').style.width = `${Math.min(100, dispTaxaLivre)}%`;
 
-
-
             document.getElementById('kpiOcupadas').textContent = fmtInt(dispOcupadas);
-
             const pctOcupOrg = dispOcupadas > 0 ? (dispOrg / dispOcupadas) * 100 : 0;
-
             const pctOcupKdd = dispOcupadas > 0 ? (dispKdd / dispOcupadas) * 100 : 0;
-
             const pctOcupHib = dispOcupadas > 0 ? (dispHib / dispOcupadas) * 100 : 0;
-
             const pctOcupCtrl = dispOcupadas > 0 ? (dispCtrlCx / dispOcupadas) * 100 : 0;
-
             document.getElementById('kpiOcupOrgQtd').textContent = fmtInt(dispOrg);
-
             document.getElementById('kpiOcupOrgPct').textContent = `${pctOcupOrg.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiOcupKddQtd').textContent = fmtInt(dispKdd);
-
             document.getElementById('kpiOcupKddPct').textContent = `${pctOcupKdd.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiOcupHibQtd').textContent = fmtInt(dispHib);
-
             document.getElementById('kpiOcupHibPct').textContent = `${pctOcupHib.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiOcupCtrlQtd').textContent = fmtInt(dispCtrlCx);
-
             document.getElementById('kpiOcupCtrlPct').textContent = `${pctOcupCtrl.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiOcupOrgBar').style.width = `${pctOcupOrg}%`;
-
             document.getElementById('kpiOcupKddBar').style.width = `${pctOcupKdd}%`;
-
             document.getElementById('kpiOcupHibBar').style.width = `${pctOcupHib}%`;
-
             document.getElementById('kpiOcupCtrlBar').style.width = `${pctOcupCtrl}%`;
 
-
-
             document.getElementById('kpiLivres').textContent = fmtInt(dispTotalLivres);
-
             const pctLivMad = dispTotalLivres > 0 ? (dispLivreMad / dispTotalLivres) * 100 : 0;
-
             const pctLivSem = dispTotalLivres > 0 ? (dispLivreSem / dispTotalLivres) * 100 : 0;
-
             const pctLivAud = dispTotalLivres > 0 ? (dispLivreAud / dispTotalLivres) * 100 : 0;
-
             document.getElementById('kpiLivresMadQtd').textContent = fmtInt(dispLivreMad);
-
             document.getElementById('kpiLivresMadPct').textContent = `${pctLivMad.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiLivresSemQtd').textContent = fmtInt(dispLivreSem);
-
             document.getElementById('kpiLivresSemPct').textContent = `${pctLivSem.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiLivresAudQtd').textContent = fmtInt(dispLivreAud);
-
             document.getElementById('kpiLivresAudPct').textContent = `${pctLivAud.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiLivresMadBar').style.width = `${pctLivMad}%`;
-
             document.getElementById('kpiLivresSemBar').style.width = `${pctLivSem}%`;
-
             document.getElementById('kpiLivresAudBar').style.width = `${pctLivAud}%`;
 
-
-
             const calcCapEq20Base = (!isCustomDatasetLoaded && isUnfiltered) ? ((51320 - 382) * 24 + 382 * 12) : capEq20;
-
             const dispCapEq20 = (res && res.capEq20 !== null) ? res.capEq20 : ((res && res.capReal !== null && capEq20 === 0) ? dispCapReal * 24 : calcCapEq20Base);
-
             const livresAudColunas = !isCustomDatasetLoaded ? Math.min(dispLivreAud, 193) : 0;
-
             const calcConcentrado = (res && res.livreConcentradoEq20 !== null)
-
                 ? res.livreConcentradoEq20
-
                 : (!isCustomDatasetLoaded && isUnfiltered
-
                     ? ((dispTotalLivres - livresAudColunas) * 24 + livresAudColunas * 12)
-
                     : livreInteiroEq20);
 
-
-
             const espacoConcentradoBase = calcConcentrado;
-
             const espacoPulverizadoBase = (res && res.livreResidualEq20 !== null)
-
                 ? res.livreResidualEq20
-
                 : ((!isCustomDatasetLoaded && isUnfiltered) ? 109502.00 : 0);
-
             const espacoLivreReconciliado = espacoConcentradoBase + espacoPulverizadoBase;
 
-
-
             const eq20ConcDisp = espacoConcentradoBase;
-
             const eq20ResDisp = isUnfiltered ? espacoPulverizadoBase : 0;
-
             const eq20OcupDisp = Math.max(0, dispCapEq20 - (eq20ConcDisp + eq20ResDisp));
 
-
-
             const pctEq20Ocup = dispCapEq20 > 0 ? (eq20OcupDisp / dispCapEq20) * 100 : 0;
-
             const pctEq20Conc = dispCapEq20 > 0 ? (eq20ConcDisp / dispCapEq20) * 100 : 0;
-
             const pctEq20Res = dispCapEq20 > 0 ? (eq20ResDisp / dispCapEq20) * 100 : 0;
 
-
-
             document.getElementById('kpiEq20').textContent = fmtInt(dispCapEq20);
-
             document.getElementById('kpiEq20OcupQtd').textContent = fmtInt(eq20OcupDisp);
-
             document.getElementById('kpiEq20OcupPct').textContent = `${pctEq20Ocup.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiEq20ConcQtd').textContent = fmtInt(eq20ConcDisp);
-
             document.getElementById('kpiEq20ConcPct').textContent = `${pctEq20Conc.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiEq20ResQtd').textContent = fmtInt(eq20ResDisp);
-
             document.getElementById('kpiEq20ResPct').textContent = `${pctEq20Res.toFixed(2).replace('.', ',')}%`;
-
             document.getElementById('kpiEq20OcupBar').style.width = `${pctEq20Ocup}%`;
-
             document.getElementById('kpiEq20ConcBar').style.width = `${pctEq20Conc}%`;
-
             document.getElementById('kpiEq20ResBar').style.width = `${pctEq20Res}%`;
 
-
-
             window.__globalLivreInteiroEq20 = espacoConcentradoBase;
-
             window.__globalCapEq20 = dispCapEq20;
-
             window.__globalEspacoPulverizado = espacoPulverizadoBase;
-
             window.__globalLivreTotalEq20 = espacoLivreReconciliado;
-
             window.__globalOcupadasCount = dispOcupadas;
-
             window.__globalOrgOcupadas = dispOrg;
-
             window.__globalKddOcupadas = dispKdd;
-
             window.__globalHibOcupadas = dispHib;
-
             window.__globalLivresCount = dispTotalLivres;
-
             window.__isUnfilteredGlobal = isUnfiltered;
 
-
-
             const pieBloqCtrl = dispBloqueio + dispCtrlCx;
-
             const totalPieGavetas = dispOrg + dispKdd + dispHib + dispTotalLivres + pieBloqCtrl;
-
             document.getElementById('donutCenterVal').textContent = fmtInt(totalPieGavetas);
 
-
-
             const totalCaixasAtual = TIPOLOGIAS_DATA.reduce((acc, t) => acc + (Number(t.caixas) || 0), 0);
-
             const footerStatsEl = document.getElementById('footerSummaryStats');
-
             if (footerStatsEl && isUnfiltered) {
-
                 footerStatsEl.textContent = `${fmtInt(dispTotalGav)} Gavetas • ${fmtInt(totalCaixasAtual)} Caixas Ativas`;
-
             }
-
-
 
             syncKpiActiveStates();
-
             renderTipologiasPage();
-
-
 
             updateDonutChart(dispOrg, dispKdd, dispHib, dispTotalLivres, pieBloqCtrl);
-
             updateNivelChart(byNivel);
-
             renderHeatmap(byZoneamento);
-
             updateTopCorredoresChart(byCorredor);
-
         }
-
-
 
         function getChartColors() {
-
             const isDark = document.documentElement.classList.contains('dark');
-
             return {
-
                 text: isDark ? '#CBD5E1' : '#334155',
-
                 muted: isDark ? '#94A3B8' : '#64748B',
-
                 grid: isDark ? 'rgba(51, 65, 85, 0.45)' : 'rgba(203, 213, 225, 0.6)'
-
             };
-
         }
-
-
 
         function initCharts() {
-
             const colors = getChartColors();
-
             initPie3D();
 
-
-
             const ctxNivel = document.getElementById('chartNivelStacked').getContext('2d');
-
             chartNivel = new Chart(ctxNivel, {
-
                 type: 'bar',
-
                 data: {
-
                     labels: ['Nível A (Base)', 'Nível B', 'Nível C', 'Nível D', 'Nível E (Topo)'],
-
                     datasets: [
-
                         { label: 'Ocupadas (Com Caixa)', data: [0,0,0,0,0], backgroundColor: '#0284C7', borderRadius: 3 },
-
                         { label: 'Livre c/ Madeira', data: [0,0,0,0,0], backgroundColor: '#2DD4BF', borderRadius: 3 },
-
                         { label: 'Livre s/ Madeira', data: [0,0,0,0,0], backgroundColor: '#818CF8', borderRadius: 3 },
-
                         { label: 'Bloqueio / Controle', data: [0,0,0,0,0], backgroundColor: '#F43F5E', borderRadius: 3 }
-
                     ]
-
                 },
-
                 options: {
-
                     responsive: true,
-
                     maintainAspectRatio: false,
-
                     onClick: (e, elements) => {
-
                         if (!elements.length) return;
-
                         const niveis = ['A', 'B', 'C', 'D', 'E'];
-
                         toggleCrossFilter('nivel', niveis[elements[0].index]);
-
                     },
-
                     plugins: {
-
                         legend: { display: false },
-
                         tooltip: {
-
                             mode: 'index',
-
                             intersect: false,
-
                             callbacks: {
-
                                 label: (ctx) => `${ctx.dataset.label}: ${fmtInt(ctx.raw)} gavetas`
-
                             }
-
                         }
-
                     },
-
                     scales: {
-
                         x: { stacked: true, grid: { display: false }, ticks: { color: colors.text, font: { weight: '600', size: 11 } } },
-
                         y: { stacked: true, grid: { color: colors.grid }, ticks: { color: colors.muted, font: { size: 11 } } }
-
                     }
-
                 }
-
             });
-
-
 
             const topCorredoresLabelsPlugin = {
-
                 id: 'topCorredoresLabels',
-
                 afterDatasetsDraw(chart) {
-
                     const { ctx } = chart;
-
                     const meta = chart.getDatasetMeta(0);
-
                     if (!meta || !meta.data) return;
-
                     const isDark = document.documentElement.classList.contains('dark');
-
                     ctx.save();
-
                     ctx.font = '700 10px Inter, sans-serif';
-
                     ctx.fillStyle = isDark ? '#E2E8F0' : '#1E293B';
-
                     ctx.textAlign = 'center';
-
                     ctx.textBaseline = 'bottom';
 
-
-
                     meta.data.forEach((bar, idx) => {
-
                         const rawVal = chart.data.datasets[0].data[idx];
-
                         if (rawVal === undefined || rawVal === null) return;
-
                         const text = corredorRankMode === 'livres'
-
                             ? fmtInt(rawVal)
-
                             : `${Number(rawVal).toFixed(1).replace('.', ',')}%`;
-
                         ctx.fillText(text, bar.x, bar.y - 4);
-
                     });
-
                     ctx.restore();
-
                 }
-
             };
-
-
 
             const ctxCorr = document.getElementById('chartTopCorredores').getContext('2d');
-
             chartCorredores = new Chart(ctxCorr, {
-
                 type: 'bar',
-
                 data: {
-
                     labels: [],
-
                     datasets: [{
-
                         label: 'Gavetas 100% Livres',
-
                         data: [],
-
                         backgroundColor: '#00B8A9',
-
                         borderRadius: 6,
-
                         maxBarThickness: 28
-
                     }]
-
                 },
-
                 plugins: [topCorredoresLabelsPlugin],
-
                 options: {
-
                     responsive: true,
-
                     maintainAspectRatio: false,
-
                     layout: { padding: { top: 20 } },
-
                     onClick: (e, elements) => {
-
                         if (!elements.length) return;
-
                         const label = chartCorredores.data.labels[elements[0].index];
-
                         const cIdx = CORREDORES.indexOf(label);
-
                         if (cIdx !== -1) toggleCrossFilter('corredor', cIdx);
-
                     },
-
                     plugins: {
-
                         legend: { display: false },
-
                         tooltip: {
-
                             callbacks: {
-
                                 label: (ctx) => corredorRankMode === 'livres'
-
                                     ? `${ctx.dataset.label}: ${fmtInt(ctx.raw)} gavetas`
-
                                     : `${ctx.dataset.label}: ${Number(ctx.raw).toFixed(2).replace('.', ',')}%`
-
                             }
-
                         }
-
                     },
-
                     scales: {
-
                         x: { grid: { display: false }, ticks: { color: colors.text, font: { weight: '700', size: 11 } } },
-
                         y: { beginAtZero: true, grid: { color: colors.grid }, ticks: { color: colors.muted, font: { size: 11 } } }
-
                     }
-
                 }
-
             });
-
-
 
             const tipologiaLabelsPlugin = {
-
                 id: 'tipologiaLabels',
-
                 afterDatasetsDraw(chart) {
-
                     const { ctx } = chart;
-
                     const isDark = document.documentElement.classList.contains('dark');
-
                     ctx.save();
-
                     ctx.font = '700 9.5px Inter, sans-serif';
-
                     ctx.textAlign = 'left';
-
                     ctx.textBaseline = 'middle';
 
-
-
                     chart.data.datasets.forEach((ds, dsIdx) => {
-
                         const meta = chart.getDatasetMeta(dsIdx);
-
                         if (!meta || meta.hidden) return;
-
                         ctx.fillStyle = dsIdx === 0
-
                             ? (isDark ? '#7DD3FC' : '#0369A1')
-
                             : (isDark ? '#5EEAD4' : '#0F766E');
-
                         meta.data.forEach((bar, idx) => {
-
                             const val = ds.data[idx];
-
                             if (val === undefined || val === null) return;
-
                             ctx.fillText(fmtInt(val), bar.x + 5, bar.y);
-
                         });
-
                     });
-
                     ctx.restore();
-
                 }
-
             };
-
-
 
             const ctxTip = document.getElementById('chartTipologias').getContext('2d');
-
             chartTipologias = new Chart(ctxTip, {
-
                 type: 'bar',
-
                 data: {
-
                     labels: [],
-
                     datasets: [
-
                         { label: 'Caixas Físicas', data: [], backgroundColor: '#0284C7', borderRadius: 4, barPercentage: 0.78, categoryPercentage: 0.8 },
-
                         { label: 'Equivalente 20kg', data: [], backgroundColor: '#00B8A9', borderRadius: 4, barPercentage: 0.78, categoryPercentage: 0.8 }
-
                     ]
-
                 },
-
                 plugins: [tipologiaLabelsPlugin],
-
                 options: {
-
                     indexAxis: 'y',
-
                     responsive: true,
-
                     maintainAspectRatio: false,
-
                     layout: { padding: { right: 64 } },
-
                     plugins: {
-
                         legend: {
-
                             position: 'top',
-
                             labels: { color: colors.text, font: { size: 11, weight: '600' }, usePointStyle: true }
-
                         },
-
                         tooltip: {
-
                             callbacks: {
-
                                 label: (ctx) => `${ctx.dataset.label}: ${fmtInt(ctx.raw)}`
-
                             }
-
                         }
-
                     },
-
                     scales: {
-
                         x: { beginAtZero: true, grid: { color: colors.grid }, ticks: { color: colors.muted, font: { size: 10 } } },
-
                         y: {
-
                             grid: { display: false },
-
                             afterFit: (axis) => { axis.width = 96; },
-
                             ticks: { color: colors.text, font: { weight: '600', size: 11 }, autoSkip: false }
-
                         }
-
                     }
-
                 }
-
             });
-
         }
-
-
 
         // MOTOR GRÁFICO PIZZA 3D
-
         const pie3DState = {
-
             labels: ['Organizer (Ocup.)', 'Keep Doc (Ocup.)', 'Híbrida (Ocup.)', '100% Livres', 'Bloq. / Ctrl. Gaveta'],
-
             values: [29290, 9666, 7402, 4920, 482],
-
             colors: ['#F59E0B', '#0284C7', '#8B5CF6', '#00B8A9', '#F43F5E'],
-
             sideColors: ['#B45309', '#0369A1', '#6D28D9', '#0F766E', '#BE123C'],
-
             deepSideColors: ['#78350F', '#075985', '#4C1D95', '#115E59', '#881337'],
-
             hoveredIdx: -1,
-
             slicesGeom: []
-
         };
-
-
 
         function initPie3D() {
-
             const canvas = document.getElementById('chartDonutSistema');
-
             const tooltip = document.getElementById('pie3dTooltip');
-
             if (!canvas) return;
-
-
 
             const hitTestPie3D = (clientX, clientY) => {
-
                 const rect = canvas.getBoundingClientRect();
-
                 const mx = clientX - rect.left;
-
                 const my = clientY - rect.top;
-
                 const g = pie3DState.geom;
-
                 if (!g) return -1;
 
-
-
                 for (let i = pie3DState.slicesGeom.length - 1; i >= 0; i--) {
-
                     const s = pie3DState.slicesGeom[i];
-
                     if (s.val <= 0) continue;
-
                     const dx = (mx - s.cx) / g.rx;
-
                     const dyTop = (my - s.cy) / g.ry;
-
                     const dyBot = (my - (s.cy + g.depth)) / g.ry;
 
-
-
                     const inTop = (dx * dx + dyTop * dyTop) <= 1.02;
-
                     const inBot = (dx * dx + dyBot * dyBot) <= 1.02;
-
                     const inWallBand = Math.abs(dx) <= 1.02 && my >= s.cy && my <= (s.cy + g.depth);
 
-
-
                     if (inTop || inBot || inWallBand) {
-
                         const refY = inTop ? dyTop : (inBot ? dyBot : (my - (s.cy + g.depth * 0.5)) / g.ry);
-
                         let ang = Math.atan2(refY, dx);
-
                         if (ang < -Math.PI / 2) ang += Math.PI * 2;
-
                         if (ang >= s.start && ang <= s.end) {
-
                             return i;
-
                         }
-
                     }
-
                 }
-
                 return -1;
-
             };
-
-
 
             canvas.addEventListener('mousemove', (e) => {
-
                 const idx = hitTestPie3D(e.clientX, e.clientY);
-
                 if (idx !== pie3DState.hoveredIdx) {
-
                     pie3DState.hoveredIdx = idx;
-
                     drawPie3D();
-
                 }
-
                 if (idx !== -1) {
-
                     canvas.style.cursor = 'pointer';
-
                     const val = pie3DState.values[idx];
-
                     const total = pie3DState.values.reduce((a, b) => a + b, 0);
-
                     const pct = total > 0 ? ((val / total) * 100).toFixed(2).replace('.', ',') : '0,00';
-
                     tooltip.innerHTML = `<div class="font-bold">${pie3DState.labels[idx]}</div><div>${fmtInt(val)} gavetas (${pct}%)</div>`;
-
                     tooltip.style.left = `${e.clientX + 12}px`;
-
                     tooltip.style.top = `${e.clientY + 12}px`;
-
                     tooltip.classList.remove('hidden');
-
                 } else {
-
                     canvas.style.cursor = 'default';
-
                     tooltip.classList.add('hidden');
-
                 }
-
             });
-
-
 
             canvas.addEventListener('mouseleave', () => {
-
                 pie3DState.hoveredIdx = -1;
-
                 tooltip.classList.add('hidden');
-
                 drawPie3D();
-
             });
-
-
 
             canvas.addEventListener('click', (e) => {
-
                 const idx = hitTestPie3D(e.clientX, e.clientY);
-
                 if (idx === -1) return;
-
                 if (idx === 0) toggleCrossFilter('sistema', 0);
-
                 else if (idx === 1) toggleCrossFilter('sistema', 1);
-
                 else if (idx === 2) toggleCrossFilter('sistema', 3);
-
                 else if (idx === 3) toggleCrossFilter('situacao', 'ALL_LIVRES');
-
                 else toggleCrossFilter('situacao', 3);
-
             });
-
-
 
             window.addEventListener('resize', drawPie3D);
-
             renderPie3DLegend();
-
             drawPie3D();
-
         }
-
-
 
         function renderPie3DLegend() {
-
             const legendEl = document.getElementById('pie3dLegend');
-
             if (!legendEl) return;
-
             const actions = [
-
                 () => toggleCrossFilter('sistema', 0),
-
                 () => toggleCrossFilter('sistema', 1),
-
                 () => toggleCrossFilter('sistema', 3),
-
                 () => toggleCrossFilter('situacao', 'ALL_LIVRES'),
-
                 () => toggleCrossFilter('situacao', 3)
-
             ];
-
             legendEl.innerHTML = pie3DState.labels.map((lbl, idx) => `
-
                 <button type="button" data-pie-idx="${idx}" class="inline-flex items-center gap-1.5 hover:opacity-80 transition cursor-pointer">
-
                     <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${pie3DState.colors[idx]}"></span>
-
                     <span>${lbl}</span>
-
                 </button>
-
             `).join('');
-
             legendEl.querySelectorAll('button').forEach((btn, idx) => {
-
                 btn.addEventListener('click', actions[idx]);
-
             });
-
         }
-
-
 
         function drawPie3D() {
-
             const canvas = document.getElementById('chartDonutSistema');
-
             if (!canvas) return;
-
             const parent = canvas.parentElement;
-
             const dpr = window.devicePixelRatio || 1;
-
             const cssW = Math.max(240, parent.clientWidth || 360);
-
             const cssH = 215;
 
-
-
             if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
-
                 canvas.width = Math.round(cssW * dpr);
-
                 canvas.height = Math.round(cssH * dpr);
-
             }
-
-
 
             const ctx = canvas.getContext('2d');
-
             ctx.save();
-
             ctx.scale(dpr, dpr);
-
             ctx.clearRect(0, 0, cssW, cssH);
 
-
-
             const isDark = document.documentElement.classList.contains('dark');
-
             const total = pie3DState.values.reduce((a, b) => a + b, 0);
-
             const baseCx = cssW / 2;
-
             const baseCy = cssH * 0.44;
-
             const rx = Math.min(cssW * 0.36, 132);
-
             const ry = rx * 0.56;
-
             const depth = Math.max(20, Math.round(ry * 0.34));
 
-
-
             pie3DState.geom = { baseCx, baseCy, rx, ry, depth };
-
             pie3DState.slicesGeom = [];
 
-
-
             if (total <= 0) {
-
                 ctx.fillStyle = isDark ? '#94A3B8' : '#64748B';
-
                 ctx.font = '600 12px Inter, sans-serif';
-
                 ctx.textAlign = 'center';
-
                 ctx.fillText('Sem dados para o filtro atual', baseCx, baseCy);
-
                 ctx.restore();
-
                 return;
-
             }
-
-
 
             ctx.save();
-
             const shadowGrad = ctx.createRadialGradient(baseCx, baseCy + depth + 6, rx * 0.15, baseCx, baseCy + depth + 6, rx * 1.12);
-
             shadowGrad.addColorStop(0, isDark ? 'rgba(0, 0, 0, 0.55)' : 'rgba(15, 23, 42, 0.24)');
-
             shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
             ctx.fillStyle = shadowGrad;
-
             ctx.beginPath();
-
             ctx.ellipse(baseCx, baseCy + depth + 6, rx * 1.1, ry * 1.06, 0, 0, Math.PI * 2);
-
             ctx.fill();
-
             ctx.restore();
-
-
 
             let curAngle = -Math.PI / 2;
-
             const slices = pie3DState.values.map((val, idx) => {
-
                 const sweep = (val / total) * Math.PI * 2;
-
                 const start = curAngle;
-
                 const end = curAngle + sweep;
-
                 const mid = (start + end) / 2;
-
                 curAngle = end;
 
-
-
                 const isFilteredActive =
-
                     (idx === 0 && filterState.sistema === '0') ||
-
                     (idx === 1 && filterState.sistema === '1') ||
-
                     (idx === 2 && filterState.sistema === '3') ||
-
                     (idx === 3 && (filterState.situacao === 'ALL_LIVRES' || filterState.situacao === '1' || filterState.situacao === '2' || filterState.situacao === '4')) ||
-
                     (idx === 4 && (filterState.situacao === '3' || filterState.sistema === '4'));
 
-
-
                 const offset = (pie3DState.hoveredIdx === idx || isFilteredActive) ? 10 : 0;
-
                 const cx = baseCx + Math.cos(mid) * offset;
-
                 const cy = baseCy + Math.sin(mid) * (offset * 0.65);
 
-
-
                 return { idx, val, start, end, mid, cx, cy, isHighlighted: offset > 0 };
-
             });
-
-
 
             pie3DState.slicesGeom = slices;
-
             const backToFront = [...slices].sort((a, b) => Math.sin(a.mid) - Math.sin(b.mid));
 
-
-
             backToFront.forEach(s => {
-
                 if (s.val <= 0) return;
-
-
 
                 if (s.isHighlighted) {
-
                     [s.start, s.end].forEach(edgeAng => {
-
                         const ex = s.cx + Math.cos(edgeAng) * rx;
-
                         const ey = s.cy + Math.sin(edgeAng) * ry;
-
                         ctx.beginPath();
-
                         ctx.moveTo(s.cx, s.cy);
-
                         ctx.lineTo(ex, ey);
-
                         ctx.lineTo(ex, ey + depth);
-
                         ctx.lineTo(s.cx, s.cy + depth);
-
                         ctx.closePath();
-
                         ctx.fillStyle = pie3DState.deepSideColors[s.idx];
-
                         ctx.fill();
-
                     });
-
                 }
-
-
 
                 const steps = Math.max(12, Math.ceil(((s.end - s.start) / (Math.PI * 2)) * 90));
-
                 const dAng = (s.end - s.start) / steps;
-
                 for (let k = 0; k < steps; k++) {
-
                     const a1 = s.start + k * dAng;
-
                     const a2 = a1 + dAng + 0.002;
-
                     if (Math.sin((a1 + a2) / 2) < -0.15) continue;
 
-
-
                     const x1 = s.cx + Math.cos(a1) * rx;
-
                     const y1 = s.cy + Math.sin(a1) * ry;
-
                     const x2 = s.cx + Math.cos(a2) * rx;
-
                     const y2 = s.cy + Math.sin(a2) * ry;
 
-
-
                     ctx.beginPath();
-
                     ctx.moveTo(x1, y1);
-
                     ctx.lineTo(x2, y2);
-
                     ctx.lineTo(x2, y2 + depth);
-
                     ctx.lineTo(x1, y1 + depth);
-
                     ctx.closePath();
 
-
-
                     const lightFactor = 0.72 + 0.28 * Math.cos((a1 + a2) / 2 - 0.6);
-
                     ctx.fillStyle = shadeHexColor(pie3DState.sideColors[s.idx], lightFactor);
-
                     ctx.fill();
-
                 }
-
             });
-
-
 
             backToFront.forEach(s => {
-
                 if (s.val <= 0) return;
-
                 ctx.save();
-
                 ctx.beginPath();
-
                 ctx.moveTo(s.cx, s.cy);
-
                 ctx.ellipse(s.cx, s.cy, rx, ry, 0, s.start, s.end);
-
                 ctx.closePath();
 
-
-
                 const topGrad = ctx.createRadialGradient(
-
                     s.cx - rx * 0.25, s.cy - ry * 0.3, rx * 0.05,
-
                     s.cx, s.cy, rx * 1.05
-
                 );
-
                 topGrad.addColorStop(0, shadeHexColor(pie3DState.colors[s.idx], 1.14));
-
                 topGrad.addColorStop(0.75, pie3DState.colors[s.idx]);
-
                 topGrad.addColorStop(1, shadeHexColor(pie3DState.colors[s.idx], 0.88));
 
-
-
                 ctx.fillStyle = topGrad;
-
                 ctx.fill();
 
-
-
                 ctx.lineWidth = 1.4;
-
                 ctx.strokeStyle = isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.85)';
-
                 ctx.stroke();
-
                 ctx.restore();
-
             });
-
-
 
             slices.forEach(s => {
-
                 const pct = (s.val / total) * 100;
-
                 if (pct < 4) return;
-
                 const lx = s.cx + Math.cos(s.mid) * (rx * 0.62);
-
                 const ly = s.cy + Math.sin(s.mid) * (ry * 0.62);
-
                 const labelTxt = `${pct.toFixed(2).replace('.', ',')}%`;
 
-
-
                 ctx.save();
-
                 ctx.font = '800 11px Inter, sans-serif';
-
                 ctx.textAlign = 'center';
-
                 ctx.textBaseline = 'middle';
-
                 ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
-
                 ctx.fillText(labelTxt, lx + 1, ly + 1);
-
                 ctx.fillStyle = '#FFFFFF';
-
                 ctx.fillText(labelTxt, lx, ly);
-
                 ctx.restore();
-
             });
-
-
 
             ctx.restore();
-
         }
-
-
 
         function shadeHexColor(hex, factor) {
-
             const clean = hex.replace('#', '');
-
             const r = Math.min(255, Math.max(0, Math.round(parseInt(clean.substring(0, 2), 16) * factor)));
-
             const g = Math.min(255, Math.max(0, Math.round(parseInt(clean.substring(2, 4), 16) * factor)));
-
             const b = Math.min(255, Math.max(0, Math.round(parseInt(clean.substring(4, 6), 16) * factor)));
-
             return `rgb(${r}, ${g}, ${b})`;
-
         }
-
-
 
         function updateDonutChart(orgCount, kddCount, hibCount, totalLivres, bloqCtrlCount) {
-
             pie3DState.values = [orgCount, kddCount, hibCount, totalLivres, bloqCtrlCount];
-
             drawPie3D();
-
         }
-
-
 
         function updateNivelChart(byNivel) {
-
             if (!chartNivel) return;
-
             const niveis = ['A', 'B', 'C', 'D', 'E'];
-
             chartNivel.data.datasets[0].data = niveis.map(n => byNivel[n][0]);
-
             chartNivel.data.datasets[1].data = niveis.map(n => byNivel[n][1]);
-
             chartNivel.data.datasets[2].data = niveis.map(n => byNivel[n][2]);
-
             chartNivel.data.datasets[3].data = niveis.map(n => byNivel[n][3]);
-
             chartNivel.update();
-
         }
-
-
 
         function setCorredorRankMode(mode) {
-
             corredorRankMode = mode;
-
             const btnLivres = document.getElementById('btnRankLivres');
-
             const btnOcup = document.getElementById('btnRankOcup');
-
             if (mode === 'livres') {
-
                 btnLivres.className = 'px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-500 text-white shadow-xs transition cursor-pointer';
-
                 btnOcup.className = 'px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 transition cursor-pointer';
-
             } else {
-
                 btnOcup.className = 'px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-500 text-white shadow-xs transition cursor-pointer';
-
                 btnLivres.className = 'px-2.5 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 transition cursor-pointer';
-
             }
-
             updateDashboard();
-
         }
-
-
 
         function updateTopCorredoresChart(byCorredor) {
-
             if (!chartCorredores) return;
-
             const activeCorrs = byCorredor.filter(c => c.capReal > 0);
-
             let sorted = [];
-
             const isSystemFiltered = filterState.sistema !== 'ALL';
-
             const hasFreeInFilter = filterState.sistema === 'ALL' || filterState.sistema === '2';
 
-
-
             if (corredorRankMode === 'livres') {
-
                 if (hasFreeInFilter) {
-
                     sorted = [...activeCorrs].sort((a, b) => (b.livreComMad + b.livreSemMad) - (a.livreComMad + a.livreSemMad)).slice(0, 15);
-
                     chartCorredores.data.labels = sorted.map(c => c.corredor);
-
                     chartCorredores.data.datasets[0].label = 'Gavetas 100% Livres';
-
                     chartCorredores.data.datasets[0].data = sorted.map(c => c.livreComMad + c.livreSemMad);
-
                     chartCorredores.data.datasets[0].backgroundColor = '#00B8A9';
-
                 } else {
-
                     const sysName = SISTEMAS[filterState.sistema];
-
                     const sysColorMap = { '0': '#F59E0B', '1': '#0284C7', '3': '#8B5CF6', '4': '#10B981' };
-
                     sorted = [...activeCorrs].sort((a, b) => b.ocupadas - a.ocupadas).slice(0, 15);
-
                     chartCorredores.data.labels = sorted.map(c => c.corredor);
-
                     chartCorredores.data.datasets[0].label = `Gavetas ${sysName}`;
-
                     chartCorredores.data.datasets[0].data = sorted.map(c => c.ocupadas);
-
                     chartCorredores.data.datasets[0].backgroundColor = sysColorMap[filterState.sistema] || '#0284C7';
-
                 }
-
                 chartCorredores.options.scales.y.suggestedMax = Math.max(...chartCorredores.data.datasets[0].data, 10) * 1.12;
-
             } else {
-
                 const ldIndex = CORREDORES.indexOf("LD");
-
                 const sysColorMap = { '0': '#F59E0B', '1': '#0284C7', '3': '#8B5CF6', '4': '#10B981' };
-
                 const getDenom = (c) => isSystemFiltered ? (c.idx <= ldIndex ? 580 : 300) : c.capReal;
 
-
-
                 sorted = [...activeCorrs].sort((a, b) => (b.ocupadas / getDenom(b)) - (a.ocupadas / getDenom(a))).slice(0, 15);
-
                 chartCorredores.data.labels = sorted.map(c => c.corredor);
-
                 chartCorredores.data.datasets[0].label = isSystemFiltered
-
                     ? `Ocupação ${SISTEMAS[filterState.sistema]} (%)`
-
                     : 'Taxa de Ocupação (%)';
-
                 chartCorredores.data.datasets[0].data = sorted.map(c => Number(((c.ocupadas / getDenom(c)) * 100).toFixed(2)));
-
                 chartCorredores.data.datasets[0].backgroundColor = isSystemFiltered ? (sysColorMap[filterState.sistema] || '#F59E0B') : '#F59E0B';
-
                 chartCorredores.options.scales.y.suggestedMax = 108;
-
             }
-
             chartCorredores.update();
-
         }
-
-
 
         function renderHeatmap(byZoneamento) {
-
             const container = document.getElementById('heatmapGrid');
-
             const niveis = ['A', 'B', 'C', 'D', 'E'];
-
             const zonasSet = new Set();
-
             ZONEAMENTOS.forEach(z => { if (z && z.length >= 2) zonasSet.add(z.slice(1)); });
-
             const zonas = Array.from(zonasSet).sort((a, b) => Number(a) - Number(b));
 
-
-
             const titleEl = document.getElementById('heatmapTitle');
-
             if (titleEl) {
-
                 titleEl.textContent = `Mapa de Calor: Zoneamento (${niveis.length * zonas.length} Zonas)`;
-
             }
-
-
 
             const colsCount = zonas.length + 1;
-
             let html = `<div style="display:grid; grid-template-columns: repeat(${colsCount}, minmax(0, 1fr));" class="gap-1.5 text-center">`;
-
             html += `<div class="text-[10px] font-bold text-slate-400 flex items-center justify-center">NÍVEL</div>`;
-
             zonas.forEach(z => {
-
                 html += `<div class="text-[11px] font-bold text-slate-500 dark:text-slate-300 py-1">Zona ${z}</div>`;
-
             });
-
-
 
             niveis.forEach(niv => {
-
                 html += `<div class="text-xs font-extrabold text-slate-700 dark:text-slate-200 flex items-center justify-center bg-slate-100 dark:bg-slate-800/80 rounded-md">Nível ${niv}</div>`;
-
                 zonas.forEach(z => {
-
                     const key = niv + z;
-
                     const stat = byZoneamento[key] || { capReal: 0, ocupadas: 0, livres: 0, total: 0 };
-
                     const occPct = stat.capReal > 0 ? (stat.ocupadas / stat.capReal) * 100 : 0;
-
                     const isEmpty = stat.total === 0;
-
                     const isSelected = filterState.zoneamentoExato === key;
 
-
-
                     let bgClass = 'bg-slate-200 dark:bg-slate-800 text-slate-400';
-
                     if (!isEmpty) {
-
                         if (occPct >= 97) bgClass = 'bg-rose-600/90 text-white';
-
                         else if (occPct >= 93) bgClass = 'bg-orange-500/90 text-white';
-
                         else if (occPct >= 88) bgClass = 'bg-amber-500/85 text-slate-950';
-
                         else if (occPct >= 80) bgClass = 'bg-emerald-600/85 text-white';
-
                         else bgClass = 'bg-teal-600/90 text-white';
-
                     }
-
-
 
                     html += `
-
                         <div onclick="toggleCrossFilter('zoneamento', '${key}')"
-
                              title="Zoneamento ${key}: ${occPct.toFixed(1)}% ocupado | ${fmtInt(stat.livres)} gavetas livres"
-
                              class="heatmap-cell ${bgClass} ${isSelected ? 'heatmap-selected' : ''} rounded-md py-1.5 px-1 flex flex-col items-center justify-center select-none">
-
                             <span class="text-[10px] font-extrabold leading-tight opacity-90">${key}</span>
-
                             <span class="text-[11px] font-bold leading-tight">${isEmpty ? '-' : occPct.toFixed(1) + '%'}</span>
-
                             <span class="text-[9px] opacity-85 leading-tight">${isEmpty ? '' : fmtInt(stat.livres) + ' liv'}</span>
-
                         </div>
-
                     `;
-
                 });
-
             });
-
-
 
             html += `</div>`;
-
             container.innerHTML = html;
-
         }
-
-
 
         function setTipologiaSysFilter(sys) {
-
             tipologiaSysFilter = sys;
-
             ['ALL', 'ORGANIZER', 'KEEP DOC', 'HÍBRIDA'].forEach(s => {
-
                 const btn = document.getElementById(`tipSys-${s}`);
-
                 if (!btn) return;
-
                 if (s === sys) {
-
                     btn.className = "tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold bg-teal-500 text-white cursor-pointer";
-
                 } else {
-
                     btn.className = "tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer";
-
                 }
-
             });
-
             renderTipologiasPage();
-
         }
-
-
 
         function renderTipologiasPage() {
-
             const isHybridMode = tipologiaSysFilter === 'HÍBRIDA';
-
             const totalOcupBase = window.__globalOcupadasCount || 46400;
-
             const hibGavetas = window.__globalHibOcupadas || 7402;
-
             const hybridShare = totalOcupBase > 0 ? (hibGavetas / totalOcupBase) : (7402 / 46400);
 
-
-
             const effectiveTipList = TIPOLOGIAS_DATA.map(t => {
-
                 if (!isHybridMode) return t;
-
                 const hibCaixas = Math.round(t.caixas * hybridShare);
-
                 const hibEq20 = Number((hibCaixas * t.fator).toFixed(2));
-
                 return { ...t, caixas: hibCaixas, eq20: hibEq20 };
-
             });
-
-
 
             const filtered = effectiveTipList
-
                 .filter(t => tipologiaSysFilter === 'ALL' || isHybridMode || t.sistema === tipologiaSysFilter)
-
                 .sort((a, b) => {
-
                     const sysCmp = tipologiaSysSortAsc
-
                         ? a.sistema.localeCompare(b.sistema)
-
                         : b.sistema.localeCompare(a.sistema);
-
                     return sysCmp !== 0 ? sysCmp : b.caixas - a.caixas;
-
                 });
-
-
 
             const sumCaixas = filtered.reduce((acc, t) => acc + t.caixas, 0);
-
             const sumEq20 = filtered.reduce((acc, t) => acc + t.eq20, 0);
-
             const totalOrgCaixas = effectiveTipList.filter(t => t.sistema === 'ORGANIZER').reduce((acc, t) => acc + t.caixas, 0);
-
             const totalKddCaixas = effectiveTipList.filter(t => t.sistema === 'KEEP DOC').reduce((acc, t) => acc + t.caixas, 0);
-
             const totalGlobalCaixas = totalOrgCaixas + totalKddCaixas;
-
             const pctOrgCaixas = totalGlobalCaixas > 0 ? (totalOrgCaixas / totalGlobalCaixas) * 100 : 0;
-
             const pctKddCaixas = totalGlobalCaixas > 0 ? (totalKddCaixas / totalGlobalCaixas) * 100 : 0;
 
-
-
             const capUtilVol = isHybridMode ? (hibGavetas * 24) : (window.__globalCapEq20 || 1227096);
-
             const espacoConcentrado = isHybridMode ? 0 : (window.__globalLivreInteiroEq20 !== undefined ? window.__globalLivreInteiroEq20 : 115764.00);
-
             const espacoPulverizado = isHybridMode
-
                 ? Math.max(0, Number((capUtilVol - sumEq20).toFixed(2)))
-
                 : (window.__globalEspacoPulverizado !== undefined ? window.__globalEspacoPulverizado : 109502.00);
-
             const espacoLivreTotal = espacoConcentrado + espacoPulverizado;
-
             const syncedSumEq20 = tipologiaSysFilter === 'ALL'
-
                 ? Math.max(0, capUtilVol - espacoLivreTotal)
-
                 : sumEq20;
 
-
-
             const bannerCaixasEl = document.getElementById('bannerTotalCaixas');
-
             if (bannerCaixasEl) {
-
                 bannerCaixasEl.textContent = isHybridMode
-
                     ? `${fmtInt(totalGlobalCaixas)} caixas mistas nas ${fmtInt(hibGavetas)} gavetas Híbridas (Organizer + Keep Doc)`
-
                     : `${fmtInt(totalGlobalCaixas)} caixas armazenadas (${fmtInt(window.__globalOcupadasCount || 46400)} gavetas ocupadas)`;
-
             }
-
             const tipCountSubEl = document.getElementById('tipologiasCountSub');
-
             if (tipCountSubEl) {
-
                 tipCountSubEl.textContent = isHybridMode
-
                     ? `${TIPOLOGIAS_DATA.length} tipologias compartilhadas nas ${fmtInt(hibGavetas)} gavetas Híbridas`
-
                     : `${TIPOLOGIAS_DATA.length} tipologias cadastradas na operação Itu`;
-
             }
-
-
 
             document.getElementById('kpiVolCaixas').textContent = fmtInt(sumCaixas);
-
             document.getElementById('kpiVolOrgQtd').textContent = fmtInt(totalOrgCaixas);
-
             document.getElementById('kpiVolOrgPct').textContent = isHybridMode
-
                 ? `${pctOrgCaixas.toFixed(2).replace('.', ',')}% nas ${fmtInt(hibGavetas)} gav. híbridas`
-
                 : `${pctOrgCaixas.toFixed(2).replace('.', ',')}% (${fmtInt(window.__globalOrgOcupadas || 29290)} ded. + ${fmtInt(window.__globalHibOcupadas || 7402)} híb.)`;
-
             document.getElementById('kpiVolKddQtd').textContent = fmtInt(totalKddCaixas);
-
             document.getElementById('kpiVolKddPct').textContent = isHybridMode
-
                 ? `${pctKddCaixas.toFixed(2).replace('.', ',')}% nas ${fmtInt(hibGavetas)} gav. híbridas`
-
                 : `${pctKddCaixas.toFixed(2).replace('.', ',')}% (${fmtInt(window.__globalKddOcupadas || 9666)} ded. + ${fmtInt(window.__globalHibOcupadas || 7402)} híb.)`;
-
             document.getElementById('kpiVolOrgBar').style.width = `${pctOrgCaixas}%`;
-
             document.getElementById('kpiVolKddBar').style.width = `${pctKddCaixas}%`;
 
-
-
             const boxOrg = document.getElementById('boxVolOrg');
-
             const boxKdd = document.getElementById('boxVolKdd');
-
             if (boxOrg && boxKdd) {
-
                 boxOrg.style.opacity = tipologiaSysFilter === 'KEEP DOC' ? '0.4' : '1';
-
                 boxKdd.style.opacity = tipologiaSysFilter === 'ORGANIZER' ? '0.4' : '1';
-
             }
-
-
 
             document.getElementById('kpiVolEq20').textContent = fmtDec(syncedSumEq20);
-
             const pctCap = capUtilVol > 0 ? (syncedSumEq20 / capUtilVol) * 100 : 0;
-
             document.getElementById('kpiVolEq20Sub').textContent = isHybridMode
-
                 ? `${pctCap.toFixed(2).replace('.', ',')}% da cap. híbrida (${fmtInt(capUtilVol)})`
-
                 : `${pctCap.toFixed(2).replace('.', ',')}% da capacidade útil (${fmtInt(capUtilVol)})`;
 
-
-
             document.getElementById('kpiVolLivreTotal').textContent = fmtDec(espacoLivreTotal);
-
             document.getElementById('kpiVolLivreSub').textContent = isHybridMode
-
                 ? `${(capUtilVol > 0 ? (espacoLivreTotal / capUtilVol) * 100 : 0).toFixed(2).replace('.', ',')}% residual interno nas híbridas`
-
                 : `${(capUtilVol > 0 ? (espacoLivreTotal / capUtilVol) * 100 : 0).toFixed(2).replace('.', ',')}% de ociosidade (${fmtInt(window.__globalLivresCount || 4920)} gav. livres)`;
 
-
-
             const pctConc = espacoLivreTotal > 0 ? (espacoConcentrado / espacoLivreTotal) * 100 : 0;
-
             const pctPulv = espacoLivreTotal > 0 ? (espacoPulverizado / espacoLivreTotal) * 100 : 0;
-
             document.getElementById('kpiVolConcentrado').textContent = fmtDec(espacoConcentrado);
-
             document.getElementById('kpiVolConcentradoPct').textContent = `${pctConc.toFixed(2).replace('.', ',')}% do livre`;
-
             document.getElementById('kpiVolPulverizado').textContent = fmtDec(espacoPulverizado);
-
             document.getElementById('kpiVolPulverizadoPct').textContent = `${pctPulv.toFixed(2).replace('.', ',')}% do livre`;
-
             document.getElementById('kpiVolConcBar').style.width = `${pctConc}%`;
-
             document.getElementById('kpiVolPulvBar').style.width = `${pctPulv}%`;
 
-
-
             const tbody = document.getElementById('tbodyTipologias');
-
             if (tbody) {
-
                 tbody.innerHTML = filtered.map(t => `
-
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
-
                         <td class="p-2.5 font-extrabold text-slate-900 dark:text-white">${t.modelo}</td>
-
                         <td class="p-2.5">
-
                             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.sistema === 'ORGANIZER' ? 'bg-amber-500/15 text-amber-500' : 'bg-sky-500/15 text-sky-400'}">
-
                                 ${t.sistema}
-
                             </span>
-
                         </td>
-
                         <td class="p-2.5 text-right font-mono text-slate-500 dark:text-slate-400">${t.fatorLabel || (t.fator.toFixed(2).replace('.', ',') + 'x')}</td>
-
                         <td class="p-2.5 text-right font-semibold">${fmtInt(t.caixas)}</td>
-
                         <td class="p-2.5 text-right font-bold text-teal-500">${fmtDec(t.eq20)}</td>
-
                     </tr>
-
                 `).join('');
-
             }
-
-
 
             if (chartTipologias) {
-
                 const byVisualImpact = [...filtered].sort((a, b) => {
-
                     const maxA = Math.max(a.caixas, a.eq20);
-
                     const maxB = Math.max(b.caixas, b.eq20);
-
                     return maxB !== maxA ? maxB - maxA : b.caixas - a.caixas;
-
                 });
-
                 chartTipologias.data.labels = byVisualImpact.map(t => `${t.modelo} (${t.sistema === 'ORGANIZER' ? 'Org' : 'KDD'})`);
-
                 chartTipologias.data.datasets[0].data = byVisualImpact.map(t => t.caixas);
-
                 chartTipologias.data.datasets[1].data = byVisualImpact.map(t => Math.round(t.eq20));
-
                 chartTipologias.resize();
-
                 chartTipologias.update();
-
             }
-
         }
-
-
 
         function toggleTipologiaSort() {
-
             tipologiaSysSortAsc = !tipologiaSysSortAsc;
-
             const ind = document.getElementById('tipSortIndicator');
-
             if (ind) ind.textContent = tipologiaSysSortAsc ? '▲' : '▼';
-
             renderTipologiasPage();
-
         }
-
-
 
         function switchPage(pageId) {
-
             currentPage = pageId;
-
             document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
-
             const targetPage = document.getElementById(pageId);
-
             if (targetPage) targetPage.classList.remove('hidden');
 
-
-
             document.querySelectorAll('.page-tab').forEach(tab => {
-
                 if (tab.id === `tab-${pageId}`) {
-
                     tab.className = 'page-tab active px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-teal-500 text-teal-600 dark:text-teal-400 flex items-center gap-2 whitespace-nowrap cursor-pointer transition-colors';
-
                 } else {
-
                     tab.className = 'page-tab px-4 py-2.5 text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-2 whitespace-nowrap cursor-pointer transition-colors';
-
                 }
-
             });
-
-
 
             if (pageId === 'page2') {
-
                 renderTipologiasPage();
-
                 requestAnimationFrame(() => {
-
                     if (chartTipologias) {
-
                         chartTipologias.resize();
-
                         chartTipologias.update();
-
                     }
-
                 });
-
             }
-
         }
-
-
 
         function toggleTheme() {
-
             const html = document.documentElement;
-
             html.classList.toggle('dark');
-
             const colors = getChartColors();
 
-
-
             [chartNivel, chartCorredores, chartTipologias].forEach(ch => {
-
                 if (!ch) return;
-
                 if (ch.options.plugins?.legend?.labels) ch.options.plugins.legend.labels.color = colors.text;
-
                 if (ch.options.scales?.x) {
-
                     if (ch.options.scales.x.ticks) ch.options.scales.x.ticks.color = colors.text;
-
                     if (ch.options.scales.x.grid) ch.options.scales.x.grid.color = colors.grid;
-
                 }
-
                 if (ch.options.scales?.y) {
-
                     if (ch.options.scales.y.ticks) ch.options.scales.y.ticks.color = colors.text;
-
                     if (ch.options.scales.y.grid) ch.options.scales.y.grid.color = colors.grid;
-
                 }
-
                 ch.update();
-
             });
-
             updateDashboard();
-
         }
-
-
 
         let currentPage = 'page1';
-
         let corredorRankMode = 'livres';
-
         let tipologiaSysFilter = 'ALL';
-
         let tipologiaSysSortAsc = true;
 
-
-
         let chartNivel = null;
-
         let chartCorredores = null;
-
         let chartTipologias = null;
 
-
-
         const filterState = {
-
             sistema: 'ALL',
-
             situacao: 'ALL',
-
             nivel: 'ALL',
-
             zona: 'ALL',
-
             corredor: 'ALL',
-
             estrutura: 'ALL',
-
             zoneamentoExato: null
-
         };
 
-
-
         const fmtInt = (n) => Math.round(Number(n) || 0).toLocaleString('pt-BR');
-
         const fmtDec = (n) => (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
         const fmtPct = (n) => (Number(n) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
 
-
-
         function setVisaoGeralQuickFilter(mode) {
-
             filterState.zoneamentoExato = null;
-
             if (mode === 'ALL') {
-
                 filterState.sistema = 'ALL';
-
                 filterState.situacao = 'ALL';
-
                 setTipologiaSysFilter('ALL');
-
             } else if (mode === 'ORG') {
-
                 const activating = filterState.sistema !== '0';
-
                 filterState.sistema = activating ? '0' : 'ALL';
-
                 filterState.situacao = 'ALL';
-
                 setTipologiaSysFilter(activating ? 'ORGANIZER' : 'ALL');
-
             } else if (mode === 'KDD') {
-
                 const activating = filterState.sistema !== '1';
-
                 filterState.sistema = activating ? '1' : 'ALL';
-
                 filterState.situacao = 'ALL';
-
                 setTipologiaSysFilter(activating ? 'KEEP DOC' : 'ALL');
-
             } else if (mode === 'HIB') {
-
                 const activating = filterState.sistema !== '3';
-
                 filterState.sistema = activating ? '3' : 'ALL';
-
                 filterState.situacao = 'ALL';
-
                 setTipologiaSysFilter(activating ? 'HÍBRIDA' : 'ALL');
-
             } else if (mode === 'LIV') {
-
                 filterState.sistema = 'ALL';
-
                 filterState.situacao = filterState.situacao === 'ALL_LIVRES' ? 'ALL' : 'ALL_LIVRES';
-
                 setTipologiaSysFilter('ALL');
-
             } else if (mode === 'BLOQ') {
-
                 filterState.sistema = 'ALL';
-
                 filterState.situacao = filterState.situacao === '3' ? 'ALL' : '3';
-
                 setTipologiaSysFilter('ALL');
-
             }
-
             updateDashboard();
-
         }
-
-
 
         function syncVisaoGeralFilterButtons() {
-
             let activeKey = 'ALL';
-
             if (filterState.sistema === '0') activeKey = 'ORG';
-
             else if (filterState.sistema === '1') activeKey = 'KDD';
-
             else if (filterState.sistema === '3') activeKey = 'HIB';
-
             else if (filterState.situacao === 'ALL_LIVRES' || filterState.situacao === '1' || filterState.situacao === '2' || filterState.situacao === '4') activeKey = 'LIV';
-
             else if (filterState.situacao === '3') activeKey = 'BLOQ';
 
-
-
             ['ALL', 'ORG', 'KDD', 'HIB', 'LIV', 'BLOQ'].forEach(k => {
-
                 const btn = document.getElementById(`vgFilter-${k}`);
-
                 if (!btn) return;
-
                 if (k === activeKey) {
-
                     btn.className = 'vg-filter-btn px-3 py-1 rounded-md text-xs font-semibold bg-teal-500 text-white cursor-pointer transition';
-
                 } else {
-
                     btn.className = 'vg-filter-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition';
-
                 }
-
             });
-
         }
-
-
 
         function toggleCrossFilter(type, value) {
-
             if (type === 'zoneamento') {
-
                 filterState.zoneamentoExato = filterState.zoneamentoExato === value ? null : value;
-
                 if (filterState.zoneamentoExato) {
-
                     filterState.nivel = value[0];
-
                     filterState.zona = value[1];
-
                 } else {
-
                     filterState.nivel = 'ALL';
-
                     filterState.zona = 'ALL';
-
                 }
-
             } else {
-
                 const strVal = String(value);
-
                 filterState[type] = filterState[type] === strVal ? 'ALL' : strVal;
-
                 if (type === 'nivel' || type === 'zona') filterState.zoneamentoExato = null;
-
             }
-
             updateDashboard();
-
         }
-
-
 
         function handleKpiClick(kpi) {
-
             if (kpi === 'capReal') {
-
                 const next = filterState.estrutura === 'ALL' ? '0' : (filterState.estrutura === '0' ? '1' : 'ALL');
-
                 filterState.estrutura = next;
-
                 updateDashboard();
-
             } else if (kpi === 'taxaOcup') {
-
                 setCorredorRankMode(corredorRankMode === 'livres' ? 'ocupacao' : 'livres');
-
             } else if (kpi === 'ocupadas') {
-
                 toggleCrossFilter('situacao', '0');
-
             } else if (kpi === 'livres') {
-
                 const next = filterState.situacao === 'ALL_LIVRES' ? '1' : (filterState.situacao === '1' ? '2' : (filterState.situacao === '2' ? '4' : (filterState.situacao === '4' ? 'ALL' : 'ALL_LIVRES')));
-
                 filterState.situacao = next;
-
                 updateDashboard();
-
             } else if (kpi === 'eq20') {
-
                 switchPage('page2');
-
             }
-
         }
-
-
 
         function resetFilters() {
-
             filterState.sistema = 'ALL';
-
             filterState.situacao = 'ALL';
-
             filterState.nivel = 'ALL';
-
             filterState.zona = 'ALL';
-
             filterState.corredor = 'ALL';
-
             filterState.estrutura = 'ALL';
-
             filterState.zoneamentoExato = null;
-
             setTipologiaSysFilter('ALL');
-
             updateDashboard();
-
         }
-
-
 
         // MOTOR DE GERAÇÃO E IMPORTAÇÃO DE PLANILHAS EXCEL
-
         function showImportBanner(type, message) {
-
             const banner = document.getElementById('importStatusBanner');
-
             const icon = document.getElementById('importStatusIcon');
-
             const text = document.getElementById('importStatusText');
-
             if (!banner || !icon || !text) return;
 
-
-
             banner.classList.remove('hidden', 'bg-emerald-500/15', 'border-emerald-500/30', 'text-emerald-700', 'dark:text-emerald-300',
-
                 'bg-rose-500/15', 'border-rose-500/30', 'text-rose-700', 'dark:text-rose-300',
-
                 'bg-amber-500/15', 'border-amber-500/30', 'text-amber-700', 'dark:text-amber-300');
 
-
-
             if (type === 'success') {
-
                 banner.classList.add('bg-emerald-500/15', 'border-emerald-500/30', 'text-emerald-700', 'dark:text-emerald-300');
-
                 icon.textContent = '✓';
-
             } else if (type === 'warning') {
-
                 banner.classList.add('bg-amber-500/15', 'border-amber-500/30', 'text-amber-700', 'dark:text-amber-300');
-
                 icon.textContent = '⚠';
-
             } else {
-
                 banner.classList.add('bg-rose-500/15', 'border-rose-500/30', 'text-rose-700', 'dark:text-rose-300');
-
                 icon.textContent = '✕';
-
             }
-
             text.textContent = message;
-
         }
-
-
 
         function hideImportBanner() {
-
             const banner = document.getElementById('importStatusBanner');
-
             if (banner) banner.classList.add('hidden');
-
         }
-
-
 
         function triggerExcelUpload() {
-
             if (typeof XLSX === 'undefined') {
-
                 showImportBanner('error', 'Biblioteca de leitura de planilhas (SheetJS) indisponível. Verifique sua conexão e tente novamente.');
-
                 return;
-
             }
-
             const input = document.getElementById('excelFileInput');
-
             if (input) {
-
                 input.value = '';
-
                 input.click();
-
             }
-
         }
-
-
 
         function downloadExcelTemplate() {
-
             if (typeof XLSX === 'undefined') {
-
                 showImportBanner('error', 'Biblioteca SheetJS indisponível para gerar o arquivo Excel.');
-
                 return;
-
             }
-
-
 
             try {
-
                 const wb = XLSX.utils.book_new();
 
-
-
                 const mapaHeader = [['CORREDOR', 'ZONEAMENTO', 'SISTEMA', 'SITUACAO', 'ESTRUTURA', 'QTD']];
-
                 const mapaRows = RAW_ROWS.map(([cIdx, zIdx, sIdx, sitIdx, isCol, qtd]) => [
-
                     CORREDORES[cIdx] || 'IA',
-
                     ZONEAMENTOS[zIdx] || 'A1',
-
                     SISTEMAS[sIdx] || 'NENHUM',
-
                     SITUACOES[sitIdx] || 'Com Caixa',
-
                     isCol === 1 ? 'Coluna (12 cx)' : 'Padrão (24 cx)',
-
                     qtd
-
                 ]);
-
                 const wsMapa = XLSX.utils.aoa_to_sheet([...mapaHeader, ...mapaRows]);
-
                 wsMapa['!cols'] = [{ wch: 12 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 18 }, { wch: 10 }];
-
                 XLSX.utils.book_append_sheet(wb, wsMapa, 'MAPA_GAVETAS');
 
-
-
                 const tipHeader = [['MODELO', 'SISTEMA', 'FATOR', 'QTD_CAIXAS', 'EQUIV_20KG']];
-
                 const tipRows = TIPOLOGIAS_DATA.map(t => [
-
                     t.modelo,
-
                     t.sistema,
-
                     Number(t.fator.toFixed(4)),
-
                     t.caixas,
-
                     Number(t.eq20.toFixed(2))
-
                 ]);
-
                 const wsTip = XLSX.utils.aoa_to_sheet([...tipHeader, ...tipRows]);
-
                 wsTip['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 12 }, { wch: 15 }, { wch: 16 }];
-
                 XLSX.utils.book_append_sheet(wb, wsTip, 'TIPOLOGIAS');
 
-
-
                 const resumoData = [
-
                     ['INDICADOR', 'VALOR', 'OBSERVACAO'],
-
                     ['TOTAL_GAVETAS', 51760, 'Soma total das gavetas mapeadas (96 corredores)'],
-
                     ['BLOQUEADAS', 440, 'Gavetas com bloqueio estrutural ou inativadas'],
-
                     ['CAPACIDADE_REAL', 51320, 'Gavetas úteis disponíveis para operação'],
-
                     ['GAVETAS_OCUPADAS', 46400, 'Gavetas com caixas armazenadas'],
-
                     ['ORGANIZER', 29290, 'Gavetas ocupadas exclusivas Organizer'],
-
                     ['KEEP_DOC', 9666, 'Gavetas ocupadas exclusivas Keep Doc'],
-
                     ['HIBRIDA', 7402, 'Gavetas ocupadas mistas (Organizer + Keep Doc)'],
-
                     ['CONTROLE_DE_GAVETA', 42, 'Gavetas ocupadas em controle/auditoria'],
-
                     ['LIVRE_COM_MADEIRA', 2525, 'Gavetas 100% livres com madeirite'],
-
                     ['LIVRE_SEM_MADEIRA', 2016, 'Gavetas 100% livres sem madeirite'],
-
                     ['LIVRE_AUDITORIA', 379, 'Gavetas 100% livres em auditoria (193 em colunas de 12 cx)'],
-
                     ['CAPACIDADE_20KG', 1227096, '(50.938 × 24) + (382 colunas × 12)'],
-
                     ['ESPACO_LIVRE_CONCENTRADO', 115764, '(4.727 × 24) + (193 colunas × 12)'],
-
                     ['ESPACO_LIVRE_RESIDUAL', 109502, 'Saldo interno pulverizado nas gavetas ocupadas']
-
                 ];
-
                 const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
-
                 wsResumo['!cols'] = [{ wch: 28 }, { wch: 16 }, { wch: 52 }];
-
                 XLSX.utils.book_append_sheet(wb, wsResumo, 'RESUMO_EXECUTIVO');
 
-
-
                 XLSX.writeFile(wb, 'MODELO_BASE_UNICA_GALPAO07_ITU.xlsx');
-
                 showImportBanner('success', 'Planilha modelo "MODELO_BASE_UNICA_GALPAO07_ITU.xlsx" gerada com sucesso! Edite os dados nas 3 abas e reimporte pelo botão verde.');
-
             } catch (err) {
-
                 console.error('Erro ao gerar modelo Excel:', err);
-
                 showImportBanner('error', `Não foi possível gerar o modelo Excel: ${err.message || 'erro inesperado'}.`);
-
             }
-
         }
-
-
 
         function parsePtNumber(val) {
-
             if (typeof val === 'number') return isFinite(val) ? val : 0;
-
             const s = String(val || '').trim().replace(/[^\d.,-]/g, '');
-
             if (!s) return 0;
-
             if (s.includes(',') && s.includes('.')) {
-
                 return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
-
             }
-
             if (s.includes(',')) {
-
                 return parseFloat(s.replace(',', '.')) || 0;
-
             }
-
             return parseFloat(s) || 0;
-
         }
-
-
 
         function normalizeHeaderKey(raw) {
-
             return String(raw || '')
-
                 .normalize('NFD')
-
                 .replace(/[\u0300-\u036f]/g, '')
-
                 .toUpperCase()
-
                 .replace(/[^A-Z0-9]+/g, '_')
-
                 .replace(/^_+|_+$/g, '');
-
         }
-
-
 
         function mapSistemaIndex(raw) {
-
             const s = normalizeHeaderKey(raw);
-
             if (s.includes('CONTROLE') || s.includes('CTRL')) return 4;
-
             if (s.includes('HIBRID') || (s.includes('ORG') && (s.includes('KEEP') || s.includes('KDD')))) return 3;
-
             if (s.includes('ORG')) return 0;
-
             if (s.includes('KEEP') || s.includes('KDD')) return 1;
-
             return 2;
-
         }
-
-
 
         function mapSituacaoIndex(rawSituacao, rawMadeira = '') {
-
             const s = normalizeHeaderKey(rawSituacao);
-
             const m = normalizeHeaderKey(rawMadeira);
-
             if (s.includes('CAIXA') || s === 'OCUPADA' || s === 'OCUPADO' || s === 'COM_CAIXA') return 0;
-
             if (s.includes('BLOQ') || s.includes('INATIV')) return 3;
-
             if (s.includes('CONTROLE') || s.includes('CTRL') || s.includes('AUDITORIA')) return 4;
-
             if (s.includes('COM_MAD') || s.includes('C_MAD') || s.includes('MADEIRITE')) return 1;
-
             if (s.includes('SEM_MAD') || s.includes('S_MAD')) return 2;
-
             if (s.includes('LIVRE') || s.includes('VAZIA') || s.includes('DISPONIVEL')) {
-
                 if (m === 'SIM' || m === 'S' || m.includes('COM') || m.includes('MAD') || m === '1' || m === 'TRUE') return 1;
-
                 return 2;
-
             }
-
             return 0;
-
         }
-
-
 
         function mapEstruturaColuna(raw) {
-
             const s = normalizeHeaderKey(raw);
-
             if (s.includes('COLUNA') || s === '12' || s === 'SIM' || s === 'S') return 1;
-
             return 0;
-
         }
-
-
 
         function extractSheetTableWithSmartHeader(sheet) {
-
             const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
-
             if (!matrix || !matrix.length) return [];
 
-
-
             const knownTokens = [
-
                 'CORREDOR', 'RUA', 'ENDERECO', 'POSICAO', 'GAVETA',
-
                 'SITUACAO', 'STATUS', 'OCUPACAO', 'ZONEAMENTO', 'ZONA', 'NIVEL',
-
                 'SISTEMA', 'MODELO', 'TIPOLOGIA', 'CAIXA', 'QTD', 'QUANTIDADE', 'DIVERGENCIA'
-
             ];
 
-
-
             let headerRowIdx = 0;
-
             let bestScore = 0;
-
             const scanLimit = Math.min(matrix.length, 30);
 
-
-
             for (let r = 0; r < scanLimit; r++) {
-
                 const row = matrix[r] || [];
-
                 let score = 0;
-
                 row.forEach((cell) => {
-
                     const norm = normalizeHeaderKey(cell);
-
                     if (norm && knownTokens.some(tok => norm.includes(tok))) score++;
-
                 });
-
                 if (score > bestScore) {
-
                     bestScore = score;
-
                     headerRowIdx = r;
-
                 }
-
             }
-
-
 
             const rawHeaders = matrix[headerRowIdx] || [];
-
             const headers = rawHeaders.map((h, idx) => {
-
                 const clean = String(h || '').trim();
-
                 return clean ? clean : `COL_${idx}`;
-
             });
 
-
-
             const rows = [];
-
             for (let r = headerRowIdx + 1; r < matrix.length; r++) {
-
                 const line = matrix[r] || [];
-
                 if (line.every(v => v === '' || v === null || v === undefined)) continue;
-
                 const obj = {};
-
                 headers.forEach((h, idx) => {
-
                     obj[h] = line[idx] !== undefined ? line[idx] : '';
-
                 });
-
                 rows.push(obj);
-
             }
-
             return rows;
-
         }
-
-
 
         function parseResumoSheetMatrix(sheet) {
-
             const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
-
             const res = {
-
                 totalGavetas: null, bloqueadas: null, capReal: null, ocupadas: null,
-
                 organizer: null, keepDoc: null, hibrida: null, ctrlGaveta: null,
-
                 totalLivres: null, livreComMad: null, livreSemMad: null, livreAuditoria: null,
-
                 capEq20: null, livreConcentradoEq20: null, livreResidualEq20: null, hasAny: false
-
             };
-
-
 
             const findNumericAdjacent = (r, c) => {
-
                 for (let dc = 1; dc <= 4; dc++) {
-
                     const cell = (matrix[r] || [])[c + dc];
-
                     if (typeof cell === 'number' && isFinite(cell)) return cell;
-
                     const str = String(cell || '').trim();
-
                     if (!str) continue;
-
                     if (/^[\d.,\s%-]+$/.test(str)) return parsePtNumber(str);
-
                     break;
-
                 }
-
                 for (let dr = 1; dr <= 2; dr++) {
-
                     const cell = (matrix[r + dr] || [])[c];
-
                     if (typeof cell === 'number' && isFinite(cell)) return cell;
-
                     const str = String(cell || '').trim();
-
                     if (!str) continue;
-
                     if (/^[\d.,\s%-]+$/.test(str)) return parsePtNumber(str);
-
                     break;
-
                 }
-
                 return null;
-
             };
 
-
-
             for (let r = 0; r < matrix.length; r++) {
-
                 const row = matrix[r] || [];
-
                 for (let c = 0; c < row.length; c++) {
-
                     const rawCell = row[c];
-
                     if (typeof rawCell === 'number') continue;
-
                     const label = normalizeHeaderKey(rawCell);
-
                     if (!label || label.length < 3) continue;
 
-
-
                     const numVal = findNumericAdjacent(r, c);
-
                     if (numVal === null || numVal < 0) continue;
 
-
-
                     if ((label.includes('TOTAL_GAVETA') || label === 'GAVETAS_TOTAIS' || label === 'TOTAL_DE_GAVETAS') && numVal >= 0) {
-
                         res.totalGavetas = Math.round(numVal); res.hasAny = true;
-
                     } else if ((label.includes('BLOQUEAD') || label.includes('INATIV')) && !label.includes('TAXA') && !label.includes('PCT')) {
-
                         res.bloqueadas = Math.round(numVal); res.hasAny = true;
-
                     } else if ((label.includes('CAPACIDADE_REAL') || label.includes('GAVETAS_UTEIS') || label.includes('CAPACIDADE_UTIL')) && !label.includes('20') && numVal >= 0) {
-
                         res.capReal = Math.round(numVal); res.hasAny = true;
-
                     } else if ((label.includes('GAVETAS_OCUPADA') || label === 'OCUPADAS' || label === 'COM_CAIXA') && !label.includes('TAXA') && numVal >= 0) {
-
                         res.ocupadas = Math.round(numVal); res.hasAny = true;
-
                     } else if ((label === 'ORGANIZER' || label === 'GAVETAS_ORGANIZER' || label === 'OCUP_ORGANIZER') && !label.includes('CAIXA') && numVal >= 0) {
-
                         res.organizer = Math.round(numVal); res.hasAny = true;
-
                     } else if ((label === 'KEEP_DOC' || label === 'GAVETAS_KEEP_DOC' || label === 'OCUP_KEEP_DOC') && !label.includes('CAIXA') && numVal >= 0) {
-
                         res.keepDoc = Math.round(numVal); res.hasAny = true;
-
                     } else if (label.includes('HIBRID') && numVal >= 0) {
-
                         res.hibrida = Math.round(numVal); res.hasAny = true;
-
                     } else if ((label.includes('CONTROLE_DE_GAVETA') || label.includes('CONTROLE_GAVETA')) && numVal >= 0) {
-
                         res.ctrlGaveta = Math.round(numVal); res.hasAny = true;
-
                     } else if (label.includes('COM_MAD') || label.includes('C_MAD') || (label.includes('MADEIRITE') && !label.includes('SEM'))) {
-
                         res.livreComMad = Math.round(numVal); res.hasAny = true;
-
                     } else if (label.includes('SEM_MAD') || label.includes('S_MAD') || label.includes('SEM_MADEIRITE')) {
-
                         res.livreSemMad = Math.round(numVal); res.hasAny = true;
-
                     } else if (label.includes('AUDITORIA')) {
-
                         res.livreAuditoria = Math.round(numVal); res.hasAny = true;
-
                     } else if ((label.includes('100_LIVRE') || label.includes('GAVETAS_LIVRE') || label === 'TOTAL_LIVRES' || label === 'LIVRES') && !label.includes('20KG') && !label.includes('EQ') && numVal >= 0) {
-
                         res.totalLivres = Math.round(numVal); res.hasAny = true;
-
                     } else if ((label.includes('CAPACIDADE') && label.includes('20')) && numVal >= 0) {
-
                         res.capEq20 = numVal; res.hasAny = true;
-
                     } else if (label.includes('CONCENTRAD') && numVal >= 0) {
-
                         res.livreConcentradoEq20 = numVal; res.hasAny = true;
-
                     } else if ((label.includes('RESIDUAL') || label.includes('PULVERIZAD')) && numVal >= 0) {
-
                         res.livreResidualEq20 = numVal; res.hasAny = true;
-
                     }
-
                 }
-
             }
-
-
 
             if (res.totalLivres === null && (res.livreComMad !== null || res.livreSemMad !== null || res.livreAuditoria !== null)) {
-
                 res.totalLivres = (res.livreComMad || 0) + (res.livreSemMad || 0) + (res.livreAuditoria || 0);
-
             }
-
             return res;
-
         }
-
-
 
         function normalizeZoneCode(rawZone) {
-
             const clean = String(rawZone || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-
             const match = clean.match(/([A-E])0*(\d+)/);
-
             if (match) return `${match[1]}${Number(match[2])}`;
-
             return 'A1';
-
         }
 
-
-
         function handleExcelImport(event) {
-
             const file = event?.target?.files?.[0];
-
             if (!file) return;
 
-
-
             const reader = new FileReader();
-
             reader.onload = (e) => {
-
                 try {
-
                     const data = new Uint8Array(e.target.result);
-
                     const workbook = XLSX.read(data, { type: 'array' });
-
                     if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
-
                         showImportBanner('error', 'O arquivo selecionado está vazio ou não contém abas válidas.');
-
                         return;
-
                     }
 
-
-
                     let parsedGavetasRows = [];
-
                     let parsedTipologias = [];
-
                     let parsedDivergencias = new Map();
-
                     let parsedResumo = null;
-
                     let totalGavetasLidas = 0;
-
                     const abasReconhecidas = [];
 
-
-
                     const newCorredores = [];
-
                     const newZoneamentosSet = new Set();
 
-
-
                     workbook.SheetNames.forEach((sheetName) => {
-
                         const sheet = workbook.Sheets[sheetName];
-
                         const normSheetName = normalizeHeaderKey(sheetName);
 
-
-
                         if (normSheetName.includes('RESUMO') || normSheetName.includes('CONSOLIDADO') || normSheetName.includes('INDICADOR')) {
-
                             const resumoCandidate = parseResumoSheetMatrix(sheet);
-
                             if (resumoCandidate.hasAny) {
-
                                 parsedResumo = resumoCandidate;
-
                                 abasReconhecidas.push(sheetName);
-
                             }
-
                         }
 
-
-
                         const jsonRows = extractSheetTableWithSmartHeader(sheet);
-
                         if (!jsonRows.length) return;
 
-
-
                         const sampleKeys = Object.keys(jsonRows[0]).map(normalizeHeaderKey);
-
                         const hasCorredor = sampleKeys.some(k => k.includes('CORREDOR') || k === 'RUA' || k.includes('ENDERECO') || k.includes('POSICAO'));
-
                         const hasSituacao = sampleKeys.some(k => k.includes('SITUACAO') || k.includes('STATUS') || k.includes('OCUPACAO'));
-
                         const hasZoneamento = sampleKeys.some(k => k.includes('ZONEAMENTO') || k.includes('ZONA') || k.includes('NIVEL'));
-
                         const hasModelo = sampleKeys.some(k => k.includes('MODELO') || k.includes('TIPOLOGIA'));
-
                         const hasCaixas = sampleKeys.some(k => k.includes('CAIXA') || k.includes('QTD') || k.includes('QUANTIDADE'));
 
-
-
                         if (hasCorredor && (hasSituacao || hasZoneamento) && !hasModelo) {
-
                             let rowsAddedThisSheet = 0;
-
                             jsonRows.forEach((row) => {
-
                                 const norm = {};
-
                                 Object.entries(row).forEach(([k, v]) => { norm[normalizeHeaderKey(k)] = v; });
 
-
-
                                 let corrRaw = String(norm.CORREDOR || norm.RUA || '').trim().toUpperCase();
-
                                 let zRaw = String(norm.ZONEAMENTO || '').trim().toUpperCase();
 
-
-
                                 const endRaw = String(norm.ENDERECO || norm.POSICAO || norm.LOCAL || '').trim().toUpperCase();
-
                                 if (!corrRaw && endRaw) {
-
                                     const matchCorr = endRaw.match(/^([A-Z]{2})/);
-
                                     if (matchCorr) corrRaw = matchCorr[1];
-
                                 }
-
                                 if (!zRaw && endRaw) {
-
                                     const matchNiv = endRaw.match(/[-_.\s]([A-E])[-_.\s\d]/);
-
                                     if (matchNiv) zRaw = `${matchNiv[1]}1`;
-
                                 }
-
-
 
                                 if (!corrRaw || corrRaw === 'TOTAL' || corrRaw === 'TOTAL_GERAL' || corrRaw === 'CORREDOR') return;
 
-
-
                                 let cIdx = newCorredores.indexOf(corrRaw);
-
                                 if (cIdx === -1) {
-
                                     newCorredores.push(corrRaw);
-
                                     cIdx = newCorredores.length - 1;
-
                                 }
-
-
 
                                 if (!zRaw && norm.NIVEL) {
-
                                     const nStr = String(norm.NIVEL).trim().toUpperCase().replace(/[^A-E]/g, '') || 'A';
-
                                     const zNum = String(norm.ZONA || '1').trim().replace(/\D/g, '') || '1';
-
                                     zRaw = `${nStr}${zNum}`;
-
                                 }
-
                                 const zStr = normalizeZoneCode(zRaw);
-
                                 newZoneamentosSet.add(zStr);
 
-
-
                                 const sIdx = mapSistemaIndex(norm.SISTEMA || norm.SISTEMA_ATIVO || norm.WMS || '');
-
                                 const sitRaw = norm.SITUACAO || norm.SITUACAO_FISICA || norm.STATUS || norm.OCUPACAO || '';
-
                                 const madRaw = norm.MADEIRA || norm.MADEIRITE || norm.MADEIRITES || norm.COM_MADEIRA || norm.COM_MADEIRITE || '';
-
                                 const sitIdx = mapSituacaoIndex(sitRaw, madRaw);
-
                                 const isCol = mapEstruturaColuna(norm.ESTRUTURA || norm.TIPO_GAVETA || norm.CAPACIDADE || norm.COLUNA || '');
 
-
-
                                 const rawQtdField = norm.QTD ?? norm.QUANTIDADE ?? norm.GAVETAS ?? norm.CONTAGEM ?? norm.TOTAL;
-
                                 const qtd = (rawQtdField === undefined || rawQtdField === '')
-
                                     ? 1
-
                                     : Math.round(parsePtNumber(rawQtdField));
 
-
-
                                 if (qtd > 0) {
-
                                     parsedGavetasRows.push([cIdx, zStr, sIdx, sitIdx, isCol, qtd]);
-
                                     totalGavetasLidas += qtd;
-
                                     rowsAddedThisSheet++;
-
                                 }
-
                             });
-
                             if (rowsAddedThisSheet > 0 && !abasReconhecidas.includes(sheetName)) {
-
                                 abasReconhecidas.push(sheetName);
-
                             }
-
                         } else if (hasModelo && hasCaixas) {
-
                             let tipAdded = 0;
-
                             jsonRows.forEach((row) => {
-
                                 const norm = {};
-
                                 Object.entries(row).forEach(([k, v]) => { norm[normalizeHeaderKey(k)] = v; });
-
-
 
                                 const modelo = String(norm.MODELO || norm.TIPOLOGIA || '').trim().toUpperCase();
-
                                 if (!modelo || modelo === 'TOTAL' || modelo === 'TOTAL_GERAL' || modelo === 'MODELO') return;
 
-
-
                                 const sisRaw = normalizeHeaderKey(norm.SISTEMA || '');
-
                                 const sistema = sisRaw.includes('KEEP') || sisRaw.includes('KDD') ? 'KEEP DOC' : 'ORGANIZER';
-
                                 const caixas = Math.round(parsePtNumber(norm.QTD_CAIXAS || norm.CAIXAS || norm.QUANTIDADE || norm.QTD || 0));
-
                                 const fatorRaw = parsePtNumber(norm.FATOR || norm.CONVERSOR || norm.MULTIPLICADOR || 0);
-
                                 const eq20Raw = parsePtNumber(norm.EQUIV_20KG || norm.EQ_20KG || norm.EQUIVALENTE_20KG || norm.VOLUME_20KG || 0);
 
-
-
                                 const fator = fatorRaw > 0 ? fatorRaw : (caixas > 0 && eq20Raw > 0 ? eq20Raw / caixas : 1);
-
                                 const eq20 = eq20Raw > 0 ? eq20Raw : Number((caixas * fator).toFixed(2));
 
-
-
                                 if (caixas > 0 || eq20 > 0) {
-
                                     parsedTipologias.push({
-
                                         modelo,
-
                                         sistema,
-
                                         fator,
-
                                         fatorLabel: `${fator.toFixed(2).replace('.', ',')}x`,
-
                                         caixas,
-
                                         eq20
-
                                     });
-
                                     tipAdded++;
-
                                 }
-
                             });
-
                             if (tipAdded > 0 && !abasReconhecidas.includes(sheetName)) {
-
                                 abasReconhecidas.push(sheetName);
-
                             }
-
                         } else if (hasCorredor && !hasSituacao && !hasModelo) {
-
                             let divAdded = 0;
-
                             jsonRows.forEach((row) => {
-
                                 const norm = {};
-
                                 Object.entries(row).forEach(([k, v]) => { norm[normalizeHeaderKey(k)] = v; });
 
-
-
                                 const corrRaw = String(norm.CORREDOR || norm.RUA || '').trim().toUpperCase();
-
                                 if (!corrRaw || corrRaw === 'TOTAL' || corrRaw === 'CORREDOR') return;
-
                                 const divVal = Math.round(parsePtNumber(norm.DIVERGENCIAS || norm.DIVERGENCIA || norm.QTD || norm.CONTAGEM || 1));
-
                                 parsedDivergencias.set(corrRaw, (parsedDivergencias.get(corrRaw) || 0) + divVal);
-
                                 divAdded++;
-
                             });
-
                             if (divAdded > 0 && !abasReconhecidas.includes(sheetName)) {
-
                                 abasReconhecidas.push(sheetName);
-
                             }
-
                         }
-
                     });
 
-
-
                     if (!parsedResumo && parsedGavetasRows.length === 0 && parsedTipologias.length === 0) {
-
                         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-
                         const fallbackResumo = parseResumoSheetMatrix(firstSheet);
-
                         if (fallbackResumo.hasAny) {
-
                             parsedResumo = fallbackResumo;
-
                             abasReconhecidas.push(workbook.SheetNames[0]);
-
                         }
-
                     }
-
-
 
                     if (parsedGavetasRows.length === 0 && parsedTipologias.length === 0 && !parsedResumo) {
-
                         showImportBanner('error', `Nenhuma aba compatível encontrada em "${file.name}". Verifique se o arquivo segue o padrão da planilha modelo (.xlsx).`);
-
                         return;
-
                     }
-
-
 
                     isCustomDatasetLoaded = true;
 
-
-
                     if (parsedGavetasRows.length > 0) {
-
                         CORREDORES = newCorredores;
-
                         const sortedZones = Array.from(newZoneamentosSet).sort((a, b) => {
-
                             if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
-
                             return Number(a.slice(1)) - Number(b.slice(1));
-
                         });
-
                         if (sortedZones.length > 0) {
-
                             ZONEAMENTOS = sortedZones;
-
                         }
-
                         RAW_ROWS = parsedGavetasRows.map(([cIdx, zStr, sIdx, sitIdx, isCol, qtd]) => {
-
                             const zIdx = Math.max(0, ZONEAMENTOS.indexOf(zStr));
-
                             return [cIdx, zIdx, sIdx, sitIdx, isCol, qtd];
-
                         });
-
                         DIV_BY_CORR = CORREDORES.map(c => parsedDivergencias.get(c) || 0);
 
-
-
                         if (parsedResumo) {
-
                             const resumoDiffersFromMapa =
-
                                 (parsedResumo.totalGavetas !== null && parsedResumo.totalGavetas !== totalGavetasLidas) ||
-
                                 (parsedResumo.organizer !== null && parsedResumo.organizer !== 29290) ||
-
                                 (parsedResumo.keepDoc !== null && parsedResumo.keepDoc !== 9666) ||
-
                                 (parsedResumo.hibrida !== null && parsedResumo.hibrida !== 7402) ||
-
                                 (parsedResumo.bloqueadas !== null && parsedResumo.bloqueadas !== 440) ||
-
                                 (parsedResumo.livreComMad !== null && parsedResumo.livreComMad !== 2525) ||
-
                                 (parsedResumo.livreSemMad !== null && parsedResumo.livreSemMad !== 2016) ||
-
                                 (parsedResumo.livreAuditoria !== null && parsedResumo.livreAuditoria !== 379);
 
-
-
                             importedResumoMetrics = resumoDiffersFromMapa
-
                                 ? parsedResumo
-
                                 : (parsedResumo.livreResidualEq20 !== null ? {
-
                                     totalGavetas: null, bloqueadas: null, capReal: null, ocupadas: null,
-
                                     organizer: null, keepDoc: null, hibrida: null, ctrlGaveta: null,
-
                                     totalLivres: null, livreComMad: null, livreSemMad: null, livreAuditoria: null,
-
                                     capEq20: null, livreConcentradoEq20: null,
-
                                     livreResidualEq20: parsedResumo.livreResidualEq20
-
                                 } : null);
-
                         } else {
-
                             importedResumoMetrics = null;
-
                         }
-
                     } else {
-
                         RAW_ROWS = [];
-
                         importedResumoMetrics = parsedResumo;
-
                         if (parsedDivergencias.size > 0) {
-
                             DIV_BY_CORR = CORREDORES.map(c => parsedDivergencias.get(c) || 0);
-
                         }
-
                     }
-
-
 
                     if (parsedTipologias.length > 0) {
-
                         TIPOLOGIAS_DATA = parsedTipologias;
-
                     }
-
-
 
                     const displayTotalGav = (importedResumoMetrics && importedResumoMetrics.totalGavetas !== null && importedResumoMetrics.totalGavetas > 0)
-
                         ? importedResumoMetrics.totalGavetas
-
                         : (totalGavetasLidas || (parsedResumo && parsedResumo.totalGavetas) || 0);
 
-
-
                     const fileNameEl = document.getElementById('headerFileName');
-
                     if (fileNameEl) fileNameEl.textContent = file.name;
 
-
-
                     const footerFileEl = document.getElementById('footerFileName');
-
                     if (footerFileEl) footerFileEl.textContent = file.name;
 
-
-
                     const summaryEl = document.getElementById('headerSummaryStats');
-
                     if (summaryEl) {
-
                         summaryEl.textContent = displayTotalGav > 0
-
                             ? `${fmtInt(displayTotalGav)} Gavetas • ${CORREDORES.length} Corredores`
-
                             : `Base Atualizada via Planilha`;
-
                     }
-
-
 
                     const badgeEl = document.getElementById('auditIntegrityBadge');
-
                     if (badgeEl) {
-
                         badgeEl.textContent = displayTotalGav > 0
-
                             ? `✓ Planilha Importada (${fmtInt(displayTotalGav)} gavetas)`
-
                             : `✓ Planilha Importada`;
-
                     }
-
-
 
                     resetFilters();
 
-
-
                     const partsMsg = [];
-
                     if (parsedResumo) partsMsg.push(`Aba RESUMO`);
-
                     if (parsedGavetasRows.length > 0) partsMsg.push(`${fmtInt(totalGavetasLidas)} gavetas mapeadas`);
-
                     if (parsedTipologias.length > 0) partsMsg.push(`${parsedTipologias.length} tipologias`);
 
-
-
                     showImportBanner('success', `Planilha "${file.name}" importada com sucesso! Abas processadas: [${abasReconhecidas.join(', ')}] → ${partsMsg.join(' • ')}.`);
-
                 } catch (err) {
-
                     console.error('Erro ao processar planilha:', err);
-
                     showImportBanner('error', `Falha ao ler a planilha "${file.name}": ${err.message || 'formato inválido'}.`);
-
                 }
-
             };
-
-
 
             reader.onerror = () => {
-
                 showImportBanner('error', `Não foi possível abrir o arquivo "${file.name}".`);
-
             };
 
-
-
             reader.readAsArrayBuffer(file);
-
         }
 
-
-
         window.addEventListener('DOMContentLoaded', () => {
-
             buildWarehouseDataset();
-
             initCharts();
-
             renderTipologiasPage();
-
             updateDashboard();
-
         });
-
     </script>
-
 </body>
-
 </html>
