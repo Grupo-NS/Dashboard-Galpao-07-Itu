@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+g<!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -105,14 +105,14 @@
                 </div>
             </div>
 
-            <!-- Controles Globais (Download Modelo, Importação, Tema, Reset) -->
+            <!-- Controles Globais (Download Modelo, Importação, Exportação GitHub, Tema, Reset) -->
             <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                 <div class="hidden xl:flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
                     <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
                     <span>Clique nos gráficos ou células para <strong>Cross-Filtering</strong></span>
                 </div>
 
-                <!-- Input oculto e Botões Excel -->
+                <!-- Input oculto e Botões Excel / GitHub -->
                 <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)">
                 <button id="btnDownloadTemplate" type="button" onclick="downloadExcelTemplate()" title="Baixar planilha modelo (.xlsx) pronta para preenchimento e atualização" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white shadow-sm transition cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -121,6 +121,15 @@
                 <button id="btnImportExcel" type="button" onclick="triggerExcelUpload()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 hover:bg-teal-500 text-white shadow-sm transition cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     Importar Planilha (.xlsx / .csv)
+                </button>
+                <button id="btnExportStandalone" type="button" onclick="downloadStandaloneHtml()" title="Baixar arquivo index.html pronto para publicar no GitHub Pages com os dados atuais" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                    Exportar HTML (GitHub)
+                </button>
+
+                <button id="btnRestoreDefault" type="button" onclick="restoreDefaultBase()" title="Remover dados salvos e voltar para a base oficial padrão" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-500/30 transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                    Restaurar Base Padrão
                 </button>
 
                 <button id="btnResetAll" type="button" onclick="resetFilters()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 transition cursor-pointer">
@@ -226,19 +235,24 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
                         </span>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div class="grid grid-cols-3 gap-1.5 mt-2">
                         <div>
-                            <span class="block text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">Ocupação</span>
-                            <div id="kpiTaxaOcup" class="text-xl sm:text-2xl font-extrabold text-amber-500 leading-tight">90,42%</div>
+                            <span class="block text-[9px] font-semibold uppercase text-amber-600 dark:text-amber-400">Ocupação</span>
+                            <div id="kpiTaxaOcup" class="text-sm sm:text-base font-extrabold text-amber-500 leading-tight">89,56%</div>
                         </div>
-                        <div class="border-l border-slate-200 dark:border-slate-700 pl-2">
-                            <span class="block text-[10px] font-semibold uppercase text-teal-600 dark:text-teal-400">Taxa Livre</span>
-                            <div id="kpiTaxaLivre" class="text-xl sm:text-2xl font-extrabold text-teal-500 leading-tight">9,51%</div>
+                        <div class="border-l border-slate-200 dark:border-slate-700 pl-1.5">
+                            <span class="block text-[9px] font-semibold uppercase text-teal-600 dark:text-teal-400">Taxa Livre</span>
+                            <div id="kpiTaxaLivre" class="text-sm sm:text-base font-extrabold text-teal-500 leading-tight">9,51%</div>
+                        </div>
+                        <div class="border-l border-slate-200 dark:border-slate-700 pl-1.5">
+                            <span class="block text-[9px] font-semibold uppercase text-rose-600 dark:text-rose-400">Bloqueadas</span>
+                            <div id="kpiTaxaBloq" class="text-sm sm:text-base font-extrabold text-rose-500 leading-tight">0,93%</div>
                         </div>
                     </div>
                     <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden flex">
-                        <div id="kpiTaxaBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 90.42%"></div>
+                        <div id="kpiTaxaBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 89.56%"></div>
                         <div id="kpiTaxaLivreBar" class="bg-teal-500 h-full transition-all duration-300" style="width: 9.51%"></div>
+                        <div id="kpiTaxaBloqBar" class="bg-rose-500 h-full transition-all duration-300" style="width: 0.93%"></div>
                     </div>
                 </div>
 
@@ -442,9 +456,9 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Filtrar Tipologias por Sistema:</span>
-                    <div class="inline-flex rounded-lg bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700">
-                        <button type="button" onclick="setTipologiaSysFilter('ALL')" id="tipSys-ALL" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold bg-teal-500 text-white cursor-pointer">Todos</button>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Filtrar Tipologias:</span>
+                    <div class="inline-flex flex-wrap rounded-lg bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 gap-0.5">
+                        <button type="button" onclick="setTipologiaSysFilter('ALL')" id="tipSys-ALL" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold bg-teal-500 text-white cursor-pointer">Todas (16)</button>
                         <button type="button" onclick="setTipologiaSysFilter('ORGANIZER')" id="tipSys-ORGANIZER" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">Organizer</button>
                         <button type="button" onclick="setTipologiaSysFilter('KEEP DOC')" id="tipSys-KEEP DOC" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">Keep Doc</button>
                         <button type="button" onclick="setTipologiaSysFilter('HÍBRIDA')" id="tipSys-HÍBRIDA" class="tip-sys-btn px-3 py-1 rounded-md text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">Híbrida</button>
@@ -452,8 +466,8 @@
                 </div>
             </div>
 
-            <!-- 4 KPIs de Volumetria -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- 3 KPIs de Volumetria -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div onclick="setTipologiaSysFilter(tipologiaSysFilter === 'ORGANIZER' ? 'ALL' : 'ORGANIZER')" title="Clique para alternar filtro Organizer / Todos" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-sky-500">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Caixas Físicas Ativas</span>
@@ -477,14 +491,26 @@
                     </div>
                 </div>
                 <div onclick="setTipologiaSysFilter(tipologiaSysFilter === 'KEEP DOC' ? 'ALL' : 'KEEP DOC')" title="Clique para alternar filtro Keep Doc / Todos" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-teal-500">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Volume Ocupado (Eq. 20kg)</span>
-                    <div id="kpiVolEq20" class="text-2xl sm:text-3xl font-extrabold text-teal-500 mt-2">1.001.830,00</div>
-                    <div id="kpiVolEq20Sub" class="text-xs text-slate-500 dark:text-slate-400 mt-1">81,64% da capacidade útil (1.227.096)</div>
-                </div>
-                <div onclick="switchPage('page1'); setVisaoGeralQuickFilter('LIV')" title="Clique para ver gavetas livres no mapa operacional" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-emerald-500">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Espaço Livre Total (Eq. 20kg)</span>
-                    <div id="kpiVolLivreTotal" class="text-2xl sm:text-3xl font-extrabold text-emerald-500 mt-2">225.266,00</div>
-                    <div id="kpiVolLivreSub" class="text-xs text-slate-500 dark:text-slate-400 mt-1">18,36% de ociosidade volumétrica</div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Capacidade Volumétrica (Eq. 20kg)</span>
+                        <span id="kpiVolCapTotal" class="text-sm font-extrabold text-slate-900 dark:text-white">1.227.096,00</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div>
+                            <span class="block text-[10px] font-semibold uppercase text-sky-600 dark:text-sky-400">Volume Ocupado</span>
+                            <div id="kpiVolEq20" class="text-base sm:text-lg font-extrabold text-sky-500 leading-tight">1.001.830,00</div>
+                            <span id="kpiVolEq20Sub" class="text-[10px] text-slate-500 dark:text-slate-400">81,64% ocupado</span>
+                        </div>
+                        <div class="border-l border-slate-200 dark:border-slate-700 pl-2">
+                            <span class="block text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">Espaço Livre Total</span>
+                            <div id="kpiVolLivreTotal" class="text-base sm:text-lg font-extrabold text-amber-500 leading-tight">225.266,00</div>
+                            <span id="kpiVolLivreSub" class="text-[10px] text-slate-500 dark:text-slate-400">18,36% livre (4.920 gav.)</span>
+                        </div>
+                    </div>
+                    <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-2 overflow-hidden flex">
+                        <div id="kpiVolOcupBar" class="bg-sky-500 h-full transition-all duration-300" style="width: 81.64%"></div>
+                        <div id="kpiVolLivreBar" class="bg-amber-500 h-full transition-all duration-300" style="width: 18.36%"></div>
+                    </div>
                 </div>
                 <div onclick="setTipologiaSysFilter('ALL')" title="Clique para restaurar todas as tipologias" class="pbi-card kpi-interactive bg-white dark:bg-pbi-darkCard rounded-xl p-4 border border-slate-200 dark:border-pbi-darkBorder border-l-4 border-l-amber-500">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Composição do Espaço Livre</span>
@@ -997,9 +1023,6 @@
                 }
             }
 
-            const totalLivres = livreMad + livreSem + controle;
-            const taxaOcup = capReal > 0 ? (ocupadas / capReal) * 100 : 0;
-
             const isUnfiltered = filterState.sistema === 'ALL' && filterState.situacao === 'ALL' &&
                 filterState.nivel === 'ALL' && filterState.zona === 'ALL' &&
                 filterState.corredor === 'ALL' && filterState.estrutura === 'ALL' && !filterState.zoneamentoExato;
@@ -1026,7 +1049,6 @@
                 ? res.totalGavetas
                 : (isUnfiltered ? somaConsolidadaGavetas : totalGavetas);
             const dispCapReal = Math.max(0, dispTotalGav - dispBloqueio);
-            const dispTaxaOcup = dispCapReal > 0 ? (dispOcupadas / dispCapReal) * 100 : taxaOcup;
 
             document.getElementById('kpiCapReal').textContent = fmtInt(dispCapReal);
             const bannerP1El = document.getElementById('bannerTotalGavetasP1');
@@ -1042,11 +1064,20 @@
             document.getElementById('kpiCapRealBar').style.width = `${pctCapReal}%`;
             document.getElementById('kpiCapBloqBar').style.width = `${pctCapBloq}%`;
 
-            const dispTaxaLivre = dispTotalGav > 0 ? (dispTotalLivres / dispTotalGav) * 100 : 0;
+            const pieBloqCtrl = dispBloqueio + dispCtrlCx;
+            const pieOcupSemCtrl = dispOrg + dispKdd + dispHib;
+            const totalPieGavetas = pieOcupSemCtrl + dispTotalLivres + pieBloqCtrl;
+
+            const dispTaxaOcup = totalPieGavetas > 0 ? (pieOcupSemCtrl / totalPieGavetas) * 100 : 0;
+            const dispTaxaLivre = totalPieGavetas > 0 ? (dispTotalLivres / totalPieGavetas) * 100 : 0;
+            const dispTaxaBloq = totalPieGavetas > 0 ? (pieBloqCtrl / totalPieGavetas) * 100 : 0;
+
             document.getElementById('kpiTaxaOcup').textContent = fmtPct(dispTaxaOcup);
             document.getElementById('kpiTaxaLivre').textContent = fmtPct(dispTaxaLivre);
+            document.getElementById('kpiTaxaBloq').textContent = fmtPct(dispTaxaBloq);
             document.getElementById('kpiTaxaBar').style.width = `${Math.min(100, dispTaxaOcup)}%`;
             document.getElementById('kpiTaxaLivreBar').style.width = `${Math.min(100, dispTaxaLivre)}%`;
+            document.getElementById('kpiTaxaBloqBar').style.width = `${Math.min(100, dispTaxaBloq)}%`;
 
             document.getElementById('kpiOcupadas').textContent = fmtInt(dispOcupadas);
             const pctOcupOrg = dispOcupadas > 0 ? (dispOrg / dispOcupadas) * 100 : 0;
@@ -1125,8 +1156,6 @@
             window.__globalLivresCount = dispTotalLivres;
             window.__isUnfilteredGlobal = isUnfiltered;
 
-            const pieBloqCtrl = dispBloqueio + dispCtrlCx;
-            const totalPieGavetas = dispOrg + dispKdd + dispHib + dispTotalLivres + pieBloqCtrl;
             document.getElementById('donutCenterVal').textContent = fmtInt(totalPieGavetas);
 
             const totalCaixasAtual = TIPOLOGIAS_DATA.reduce((acc, t) => acc + (Number(t.caixas) || 0), 0);
@@ -1795,34 +1824,43 @@
             }
 
             document.getElementById('kpiVolCaixas').textContent = fmtInt(sumCaixas);
-            document.getElementById('kpiVolOrgQtd').textContent = fmtInt(totalOrgCaixas);
-            document.getElementById('kpiVolOrgPct').textContent = isHybridMode
-                ? `${pctOrgCaixas.toFixed(2).replace('.', ',')}% nas ${fmtInt(hibGavetas)} gav. híbridas`
-                : `${pctOrgCaixas.toFixed(2).replace('.', ',')}% (${fmtInt(window.__globalOrgOcupadas || 29290)} ded. + ${fmtInt(window.__globalHibOcupadas || 7402)} híb.)`;
-            document.getElementById('kpiVolKddQtd').textContent = fmtInt(totalKddCaixas);
-            document.getElementById('kpiVolKddPct').textContent = isHybridMode
-                ? `${pctKddCaixas.toFixed(2).replace('.', ',')}% nas ${fmtInt(hibGavetas)} gav. híbridas`
-                : `${pctKddCaixas.toFixed(2).replace('.', ',')}% (${fmtInt(window.__globalKddOcupadas || 9666)} ded. + ${fmtInt(window.__globalHibOcupadas || 7402)} híb.)`;
-            document.getElementById('kpiVolOrgBar').style.width = `${pctOrgCaixas}%`;
-            document.getElementById('kpiVolKddBar').style.width = `${pctKddCaixas}%`;
+            const orgQtdEl = document.getElementById('kpiVolOrgQtd');
+            const orgPctEl = document.getElementById('kpiVolOrgPct');
+            const kddQtdEl = document.getElementById('kpiVolKddQtd');
+            const kddPctEl = document.getElementById('kpiVolKddPct');
+            if (orgQtdEl) orgQtdEl.textContent = fmtInt(totalOrgCaixas);
+            if (orgPctEl) orgPctEl.textContent = `${pctOrgCaixas.toFixed(2).replace('.', ',')}%`;
+            if (kddQtdEl) kddQtdEl.textContent = fmtInt(totalKddCaixas);
+            if (kddPctEl) kddPctEl.textContent = `${pctKddCaixas.toFixed(2).replace('.', ',')}%`;
 
-            const boxOrg = document.getElementById('boxVolOrg');
-            const boxKdd = document.getElementById('boxVolKdd');
-            if (boxOrg && boxKdd) {
-                boxOrg.style.opacity = tipologiaSysFilter === 'KEEP DOC' ? '0.4' : '1';
-                boxKdd.style.opacity = tipologiaSysFilter === 'ORGANIZER' ? '0.4' : '1';
+            const capTotalEl = document.getElementById('kpiVolCapTotal');
+            if (capTotalEl) capTotalEl.textContent = fmtDec(capUtilVol);
+
+            const pctCap = capUtilVol > 0 ? (syncedSumEq20 / capUtilVol) * 100 : 0;
+            const pctLivreTotal = capUtilVol > 0 ? (espacoLivreTotal / capUtilVol) * 100 : 0;
+
+            const volEq20El = document.getElementById('kpiVolEq20');
+            if (volEq20El) volEq20El.textContent = fmtDec(syncedSumEq20);
+            const volEq20SubEl = document.getElementById('kpiVolEq20Sub');
+            if (volEq20SubEl) {
+                volEq20SubEl.textContent = isHybridMode
+                    ? `${pctCap.toFixed(2).replace('.', ',')}% da cap. híbrida`
+                    : `${pctCap.toFixed(2).replace('.', ',')}% ocupado`;
             }
 
-            document.getElementById('kpiVolEq20').textContent = fmtDec(syncedSumEq20);
-            const pctCap = capUtilVol > 0 ? (syncedSumEq20 / capUtilVol) * 100 : 0;
-            document.getElementById('kpiVolEq20Sub').textContent = isHybridMode
-                ? `${pctCap.toFixed(2).replace('.', ',')}% da cap. híbrida (${fmtInt(capUtilVol)})`
-                : `${pctCap.toFixed(2).replace('.', ',')}% da capacidade útil (${fmtInt(capUtilVol)})`;
+            const volLivreEl = document.getElementById('kpiVolLivreTotal');
+            if (volLivreEl) volLivreEl.textContent = fmtDec(espacoLivreTotal);
+            const volLivreSubEl = document.getElementById('kpiVolLivreSub');
+            if (volLivreSubEl) {
+                volLivreSubEl.textContent = isHybridMode
+                    ? `${pctLivreTotal.toFixed(2).replace('.', ',')}% residual interno`
+                    : `${pctLivreTotal.toFixed(2).replace('.', ',')}% livre (${fmtInt(window.__globalLivresCount || 4920)} gav.)`;
+            }
 
-            document.getElementById('kpiVolLivreTotal').textContent = fmtDec(espacoLivreTotal);
-            document.getElementById('kpiVolLivreSub').textContent = isHybridMode
-                ? `${(capUtilVol > 0 ? (espacoLivreTotal / capUtilVol) * 100 : 0).toFixed(2).replace('.', ',')}% residual interno nas híbridas`
-                : `${(capUtilVol > 0 ? (espacoLivreTotal / capUtilVol) * 100 : 0).toFixed(2).replace('.', ',')}% de ociosidade (${fmtInt(window.__globalLivresCount || 4920)} gav. livres)`;
+            const volOcupBarEl = document.getElementById('kpiVolOcupBar');
+            const volLivreBarEl = document.getElementById('kpiVolLivreBar');
+            if (volOcupBarEl) volOcupBarEl.style.width = `${Math.min(100, pctCap)}%`;
+            if (volLivreBarEl) volLivreBarEl.style.width = `${Math.min(100, pctLivreTotal)}%`;
 
             const pctConc = espacoLivreTotal > 0 ? (espacoConcentrado / espacoLivreTotal) * 100 : 0;
             const pctPulv = espacoLivreTotal > 0 ? (espacoPulverizado / espacoLivreTotal) * 100 : 0;
@@ -2567,36 +2605,266 @@
                     const badgeEl = document.getElementById('auditIntegrityBadge');
                     if (badgeEl) {
                         badgeEl.textContent = displayTotalGav > 0
-                            ? `✓ Planilha Importada (${fmtInt(displayTotalGav)} gavetas)`
-                            : `✓ Planilha Importada`;
+                            ? `✓ Planilha Salva (${fmtInt(displayTotalGav)} gavetas)`
+                            : `✓ Planilha Salva`;
                     }
 
-                    resetFilters();
+                    const payloadToPersist = {
+                        fileName: file.name,
+                        savedAt: new Date().toISOString(),
+                        isCustomDatasetLoaded: true,
+                        corredores: CORREDORES,
+                        zoneamentos: ZONEAMENTOS,
+                        divByCorr: DIV_BY_CORR,
+                        rawRows: RAW_ROWS,
+                        tipologiasData: TIPOLOGIAS_DATA,
+                        importedResumoMetrics: importedResumoMetrics,
+                        displayTotalGav: displayTotalGav
+                    };
 
-                    const partsMsg = [];
-                    if (parsedResumo) partsMsg.push(`Aba RESUMO`);
-                    if (parsedGavetasRows.length > 0) partsMsg.push(`${fmtInt(totalGavetasLidas)} gavetas mapeadas`);
-                    if (parsedTipologias.length > 0) partsMsg.push(`${parsedTipologias.length} tipologias`);
-
-                    showImportBanner('success', `Planilha "${file.name}" importada com sucesso! Abas processadas: [${abasReconhecidas.join(', ')}] → ${partsMsg.join(' • ')}.`);
+                    saveDatasetToStorage(payloadToPersist)
+                        .then((storageMode) => {
+                            updateRestoreButtonVisibility(true);
+                            resetFilters();
+                            const autoCopied = copyUpdatedDashboardCode(true);
+                            const partsMsg = [];
+                            if (parsedResumo) partsMsg.push(`Aba RESUMO`);
+                            if (parsedGavetasRows.length > 0) partsMsg.push(`${fmtInt(totalGavetasLidas)} gavetas mapeadas`);
+                            if (parsedTipologias.length > 0) partsMsg.push(`${parsedTipologias.length} tipologias`);
+                            const persistNote = storageMode ? ` • Salvo (${storageMode})` : '';
+                            const copyNote = autoCopied ? ` • Código HTML copiado (Ctrl+V)!` : '';
+                            showImportBanner('success', `Planilha "${file.name}" importada! [${abasReconhecidas.join(', ')}] → ${partsMsg.join(' • ')}${persistNote}${copyNote}`);
+                        })
+                        .catch((err) => {
+                            console.error('Erro ao salvar localmente:', err);
+                            updateRestoreButtonVisibility(true);
+                            resetFilters();
+                            const autoCopied = copyUpdatedDashboardCode(true);
+                            const copyNote = autoCopied ? ' O código HTML atualizado foi copiado automaticamente para a área de transferência!' : '';
+                            showImportBanner('warning', `Planilha "${file.name}" carregada na sessão.${copyNote}`);
+                        });
                 } catch (err) {
                     console.error('Erro ao processar planilha:', err);
                     showImportBanner('error', `Falha ao ler a planilha "${file.name}": ${err.message || 'formato inválido'}.`);
                 }
             };
-
             reader.onerror = () => {
-                showImportBanner('error', `Não foi possível abrir o arquivo "${file.name}".`);
+                showImportBanner('error', `Não foi possível ler o arquivo "${file.name}".`);
             };
-
             reader.readAsArrayBuffer(file);
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            buildWarehouseDataset();
+        // MOTOR DE PERSISTÊNCIA LOCAL (COMPATÍVEL COM GITHUB PAGES - INDEXEDDB + LOCALSTORAGE)
+        const IDB_NAME = 'Galpao07ItuGitHubDB';
+        const IDB_STORE = 'datasets';
+        const IDB_KEY = 'current_dataset';
+        const LS_FALLBACK_KEY = 'galpao07_itu_github_dataset_v1';
+
+        function openDatasetDB() {
+            return new Promise((resolve, reject) => {
+                if (typeof indexedDB === 'undefined') {
+                    reject(new Error('IndexedDB indisponível'));
+                    return;
+                }
+                const req = indexedDB.open(IDB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(IDB_STORE)) {
+                        db.createObjectStore(IDB_STORE);
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error || new Error('Falha ao abrir IndexedDB'));
+            });
+        }
+
+        async function saveDatasetToStorage(payload) {
+            try {
+                const db = await openDatasetDB();
+                await new Promise((resolve, reject) => {
+                    const tx = db.transaction(IDB_STORE, 'readwrite');
+                    tx.objectStore(IDB_STORE).put(payload, IDB_KEY);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+                return 'Navegador (IndexedDB)';
+            } catch (idbErr) {
+                try {
+                    localStorage.setItem(LS_FALLBACK_KEY, JSON.stringify(payload));
+                    return 'Navegador (LocalStorage)';
+                } catch (lsErr) {
+                    throw lsErr;
+                }
+            }
+        }
+
+        async function loadDatasetFromStorage() {
+            try {
+                const db = await openDatasetDB();
+                const data = await new Promise((resolve, reject) => {
+                    const tx = db.transaction(IDB_STORE, 'readonly');
+                    const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => reject(req.error);
+                });
+                if (data && data.isCustomDatasetLoaded) return data;
+            } catch (e) {
+                // Fallback para localStorage
+            }
+            try {
+                const raw = localStorage.getItem(LS_FALLBACK_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return (parsed && parsed.isCustomDatasetLoaded) ? parsed : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function clearDatasetStorage() {
+            try {
+                const db = await openDatasetDB();
+                await new Promise((resolve) => {
+                    const tx = db.transaction(IDB_STORE, 'readwrite');
+                    tx.objectStore(IDB_STORE).delete(IDB_KEY);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                });
+            } catch (e) {}
+            try {
+                localStorage.removeItem(LS_FALLBACK_KEY);
+            } catch (e) {}
+        }
+
+        function downloadStandaloneHtml() {
+            try {
+                const fullHtml = buildUpdatedDashboardHtmlString();
+                const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'index.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showImportBanner('success', 'Arquivo "index.html" exportado com sucesso! Basta enviá-lo para o seu repositório no GitHub Pages.');
+            } catch (err) {
+                showImportBanner('error', `Erro ao exportar arquivo HTML: ${err.message || 'falha inesperada'}.`);
+            }
+        }
+
+        function updateRestoreButtonVisibility(visible) {
+            const el = document.getElementById('btnRestoreDefault');
+            if (!el) return;
+            if (visible) {
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            } else {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            }
+        }
+
+        async function restoreDefaultBase() {
+            await clearDatasetStorage();
+            location.reload();
+        }
+
+        function buildUpdatedDashboardHtmlString() {
+            const embeddedPayload = {
+                fileName: document.getElementById('headerFileName')?.textContent || 'PLANILHA_IMPORTADA.xlsx',
+                savedAt: new Date().toISOString(),
+                isCustomDatasetLoaded: true,
+                corredores: CORREDORES,
+                zoneamentos: ZONEAMENTOS,
+                divByCorr: DIV_BY_CORR,
+                rawRows: RAW_ROWS,
+                tipologiasData: TIPOLOGIAS_DATA,
+                importedResumoMetrics: importedResumoMetrics,
+                displayTotalGav: (importedResumoMetrics && importedResumoMetrics.totalGavetas) || RAW_ROWS.reduce((acc, r) => acc + r[5], 0)
+            };
+
+            const cloneDoc = document.documentElement.cloneNode(true);
+            const oldScript = cloneDoc.querySelector('#embeddedCustomDatasetScript');
+            if (oldScript) oldScript.remove();
+
+            const dataScript = document.createElement('script');
+            dataScript.id = 'embeddedCustomDatasetScript';
+            dataScript.textContent = `window.__EMBEDDED_GALPAO_DATASET__ = ${JSON.stringify(embeddedPayload)};`;
+            cloneDoc.querySelector('head')?.appendChild(dataScript);
+
+            return '<!DOCTYPE html>\n' + cloneDoc.outerHTML;
+        }
+
+        function copyUpdatedDashboardCode(silent = false) {
+            try {
+                const fullHtml = buildUpdatedDashboardHtmlString();
+                const textarea = document.createElement('textarea');
+                textarea.value = fullHtml;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                textarea.style.top = '0';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                const copied = document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                if (copied && !silent) {
+                    showImportBanner('success', 'Código HTML atualizado copiado para a área de transferência! Cole (Ctrl+V) no seu arquivo index.html no GitHub.');
+                }
+                return copied;
+            } catch (err) {
+                if (!silent) {
+                    showImportBanner('error', `Erro ao copiar código: ${err.message || 'falha inesperada'}.`);
+                }
+                return false;
+            }
+        }
+
+        function applyPersistedDataset(saved) {
+            if (!saved) return false;
+            isCustomDatasetLoaded = true;
+            if (Array.isArray(saved.corredores) && saved.corredores.length > 0) CORREDORES = saved.corredores;
+            if (Array.isArray(saved.zoneamentos) && saved.zoneamentos.length > 0) ZONEAMENTOS = saved.zoneamentos;
+            if (Array.isArray(saved.divByCorr)) DIV_BY_CORR = saved.divByCorr;
+            if (Array.isArray(saved.rawRows)) RAW_ROWS = saved.rawRows;
+            if (Array.isArray(saved.tipologiasData) && saved.tipologiasData.length > 0) TIPOLOGIAS_DATA = saved.tipologiasData;
+            importedResumoMetrics = saved.importedResumoMetrics || null;
+
+            const fileNameEl = document.getElementById('headerFileName');
+            if (fileNameEl && saved.fileName) fileNameEl.textContent = saved.fileName;
+            const footerFileEl = document.getElementById('footerFileName');
+            if (footerFileEl && saved.fileName) footerFileEl.textContent = saved.fileName;
+
+            const totalGav = saved.displayTotalGav || RAW_ROWS.reduce((acc, r) => acc + r[5], 0);
+            const summaryEl = document.getElementById('headerSummaryStats');
+            if (summaryEl && totalGav > 0) {
+                summaryEl.textContent = `${fmtInt(totalGav)} Gavetas • ${CORREDORES.length} Corredores`;
+            }
+            const badgeEl = document.getElementById('auditIntegrityBadge');
+            if (badgeEl) {
+                badgeEl.textContent = totalGav > 0
+                    ? `✓ Planilha Salva (${fmtInt(totalGav)} gavetas)`
+                    : `✓ Planilha Salva`;
+            }
+
+            updateRestoreButtonVisibility(true);
+            return true;
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
             initCharts();
-            renderTipologiasPage();
-            updateDashboard();
+            const embedded = window.__EMBEDDED_GALPAO_DATASET__ || null;
+            const stored = embedded || await loadDatasetFromStorage();
+            if (stored && applyPersistedDataset(stored)) {
+                updateDashboard();
+                showImportBanner('success', `Base personalizada "${stored.fileName || 'Planilha'}" carregada automaticamente.`);
+            } else {
+                buildWarehouseDataset();
+                updateDashboard();
+            }
         });
     </script>
 </body>
